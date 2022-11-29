@@ -7,6 +7,11 @@ generator docs {
   output   = "../docs"
 }
 
+generator erd {
+  provider = "prisma-erd-generator"
+  output   = "../docs/ERD.svg"
+}
+
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
