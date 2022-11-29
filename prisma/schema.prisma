@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator docs {
+  provider = "node node_modules/prisma-docs-generator"
+  output   = "../docs"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id       Int        @id @default(autoincrement())
+  name     String
+  imageId  Int
+  status   Status     @default(PENDING)
+  parentId Int?
+  image    Image      @relation(fields: [imageId], references: [id])
+  parent   Category?  @relation("CatSubCat", fields: [parentId], references: [id])
+  Category Category[] @relation("CatSubCat")
+  Product  Product[]
+
+  @@index([imageId], map: "Category_imageId_fkey")
+  @@index([parentId], map: "Category_parentId_fkey")
+}
+
+model Image {
+  id           Int        @id @default(autoincrement())
+  destination  String     @db.VarChar(255)
+  originalname String     @db.VarChar(50)
+  filename     String     @db.VarChar(100)
+  extension    String     @db.VarChar(6)
+  productId    Int?
+  Category     Category[]
+  Product      Product?   @relation(fields: [productId], references: [id])
+
+  @@index([productId], map: "Image_productId_fkey")
+}
+
+model Product {
+  id          Int         @id @default(autoincrement())
+  categoryId  Int
+  name        String      @db.VarChar(500)
+  description String      @db.VarChar(10000)
+  parentId    Int?
+  highlights  Highlight[]
+  images      Image[]
+  category    Category    @relation(fields: [categoryId], references: [id])
+  parent      Product?    @relation("ProdSubProd", fields: [parentId], references: [id])
+  Product     Product[]   @relation("ProdSubProd")
+
+  @@index([categoryId], map: "Product_categoryId_fkey")
+  @@index([parentId], map: "Product_parentId_fkey")
+}
+
+model Highlight {
+  id          Int     @id @default(autoincrement())
+  title       String  @db.VarChar(500)
+  description String  @db.VarChar(2000)
+  productId   Int
+  Product     Product @relation(fields: [productId], references: [id])
+
+  @@index([productId], map: "Highlight_productId_fkey")
+}
+
+enum Status {
+  PENDING
+  ACTIVE
+  DELETE
+}
