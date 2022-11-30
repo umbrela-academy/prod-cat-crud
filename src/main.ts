@@ -14,9 +14,7 @@ async function bootstrap() {
   const nestConfig = configService.get<NestConfig>('nest');
   const swaggerConfig = configService.get<SwaggerConfig>('swagger');
 
-  // Swagger Api
   if (swaggerConfig?.enabled) {
-    Logger.log('Enabling Open API doc via Swagger');
     const options = new DocumentBuilder()
       .setTitle(swaggerConfig.title)
       .setDescription(swaggerConfig.description)

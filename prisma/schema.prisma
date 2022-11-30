@@ -8,7 +8,7 @@ generator docs {
 }
 
 generator erd {
-  provider = "prisma-erd-generator"
+  provider = "node node_modules/prisma-erd-generator"
   output   = "../docs/ERD.svg"
 }
 
@@ -19,7 +19,7 @@ datasource db {
 
 model Category {
   id       Int        @id @default(autoincrement())
-  name     String
+  name     String     @db.VarChar(500)
   imageId  Int
   status   Status     @default(PENDING)
   parentId Int?
@@ -48,7 +48,7 @@ model Image {
 model Product {
   id          Int         @id @default(autoincrement())
   categoryId  Int
-  name        String      @db.VarChar(500)
+  name        String      @db.VarChar(1000)
   description String      @db.VarChar(10000)
   parentId    Int?
   highlights  Highlight[]
