@@ -1,14 +1,27 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../common/services/prisma.service';
-import { CreateCategoryDto } from './dto/create-category.dto';
+import { CreateCategoryDto, ImageFileDto } from "./dto/create-category.dto";
 import { UpdateCategoryDto } from './dto/update-category.dto';
+import { ImagesService } from "../images/images.service";
+import { UploadedFileModel } from "../common/types/uploaded-file.model";
 
 @Injectable()
 export class CategoriesService {
-  constructor(private prismaService: PrismaService) {}
+  constructor(
+    private prismaService: PrismaService,
+    private imagesService: ImagesService
+  ) {}
 
-  create(createCategoryDto: CreateCategoryDto) {
-    return 'This action adds a new category';
+  async create(createCategoryDto: CreateCategoryDto, imageFileDto: UploadedFileModel) {
+    const imageId = await this.imagesService.create(imageFileDto);
+    await this.prismaService.category.create({
+      data: {
+        name: createCategoryDto.name,
+        parentId: createCategoryDto.parentId,
+        status: createCategoryDto.status,
+        imageId
+      }
+    });
   }
 
   findAll() {

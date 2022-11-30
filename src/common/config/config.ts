@@ -16,6 +16,9 @@ export default (): Config => {
       version: process.env.SWAGGER_VERSION ?? '0.0.1',
       path: process.env.SWAGGER_PATH ?? 'api',
     },
+    imageStore: {
+      destination: process.env.IMG_DEST ?? 'default'
+    }
   };
 
   return config;

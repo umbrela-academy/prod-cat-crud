@@ -1,26 +1,28 @@
-import { MAX_FILE_SIZE } from './../common/types/z.schema';
+import { category } from "./entities/category.entity";
+import { ZodValidationPipe } from "@anatine/zod-nestjs";
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
-  UseInterceptors,
-  UploadedFile,
-  Logger,
+  Get,
+  Param,
   ParseFilePipe,
-  MaxFileSizeValidator,
-  FileTypeValidator,
-} from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiConsumes } from '@nestjs/swagger';
-import { CategoriesService } from './categories.service';
-import { CreateCategoryDto } from './dto/create-category.dto';
-import { UpdateCategoryDto } from './dto/update-category.dto';
+  Patch,
+  Post,
+  UploadedFile,
+  UseInterceptors,
+  UsePipes
+} from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
+import { ApiConsumes, ApiTags } from "@nestjs/swagger";
+import { CategoriesService } from "./categories.service";
+import { CreateCategoryDto } from "./dto/create-category.dto";
+import { UpdateCategoryDto } from "./dto/update-category.dto";
+import { ZImageValidationPipe } from "../common/services/z-image.validator";
 
+@ApiTags('category')
 @Controller('categories')
+@UsePipes(ZodValidationPipe)
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
@@ -29,16 +31,13 @@ export class CategoriesController {
   @UseInterceptors(FileInterceptor('image'))
   create(
     @Body() createCategoryDto: CreateCategoryDto,
-    @UploadedFile() image: Express.Multer.File,
-    // new ParseFilePipe({
-    //   validators: [
-    //     new MaxFileSizeValidator({ maxSize: MAX_FILE_SIZE }),
-    //     new FileTypeValidator({ fileType: /png|jpeg|jpg|gif|webp/ }),
-    //   ],
-    // }),
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [new ZImageValidationPipe()],
+      }),
+    ) image: Express.Multer.File,
   ) {
-    Logger.log(`cat create ${image.originalname}`, createCategoryDto.image);
-    return this.categoriesService.create(createCategoryDto);
+    return this.categoriesService.create(createCategoryDto, image);
   }
 
   @Get()

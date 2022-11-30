@@ -8,13 +8,15 @@ export const zCreateCategory = extendApi(
   z.object({
     parentId: zId(category, `to which this belongs as a sub-${category}`, true),
     name: zName(category, 1000),
-    image: zImage(category),
     status: zStatus(category),
+    image: zImage(category),
   }),
   {
     title: `Category`,
     description: `The schema for the ${category} model`,
   },
 );
+
+export class ImageFileDto extends createZodDto(zImage(category)) {}
 
 export class CreateCategoryDto extends createZodDto(zCreateCategory) {}

@@ -1,3 +1,4 @@
+import { patchNestjsSwagger } from '@anatine/zod-nestjs';
 import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
@@ -20,6 +21,9 @@ async function bootstrap() {
       .setDescription(swaggerConfig.description)
       .setVersion(swaggerConfig.version)
       .build();
+
+    patchNestjsSwagger();
+
     const document = SwaggerModule.createDocument(app, options);
 
     SwaggerModule.setup(swaggerConfig.path || globalPrefix, app, document);
@@ -28,6 +32,6 @@ async function bootstrap() {
   const port = nestConfig?.port ?? (process.env.PORT || 3333);
   await app.listen(port);
 
-  Logger.log(`🚀 Application is running on: ${port}/${globalPrefix}`);
+  Logger.log(`🚀 Application is running on: http://localhost:${port}/${globalPrefix}`);
 }
 bootstrap();

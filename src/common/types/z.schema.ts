@@ -1,5 +1,6 @@
 import { extendApi } from '@anatine/zod-openapi';
 import { z } from 'zod';
+import { UploadedFileModel } from "./uploaded-file.model";
 
 export const zStatuses = z.enum(['PENDING', 'ACTIVE', 'DELETE']);
 
@@ -44,35 +45,30 @@ export const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const MIN_FILE_SIZE = 2 * 1024;
 
 const WHITELISTED_MIMES = [
-  'image/jpeg',
-  'image/jpg',
-  'image/gif',
-  'image/png',
-  'image/webp',
+  'jpeg',
+  'jpg',
+  'gif',
+  'png',
+  'webp',
 ];
 
-const ACCEPTED_EXTENSIONS = WHITELISTED_MIMES.map(
-  (mime) => mime.split('/')[1],
-).join(', ');
+const ACCEPTED_EXTENSIONS = WHITELISTED_MIMES.join(', ').slice(0, -1);
 
-const zImageValidator = z
-  .any()
-  .refine(
-    (image) => !WHITELISTED_MIMES.includes(image?.type),
-    `Image must be one among ${ACCEPTED_EXTENSIONS}`,
-  )
-  .refine(
-    (image) => image?.size > MAX_FILE_SIZE,
-    'Image must be less than 10 MB in size',
-  )
-  .refine(
-    (image) => image?.size < MIN_FILE_SIZE,
-    'Image must be above 2 KB in size',
-  );
+export const zImageValidator = z.object({
+  fieldname: z.string().startsWith('image', { message: "incorrect field" }),
+  originalname: z.string().max(25, "image name should not be longer than 25 characters"),
+  encoding: z.string(),
+  mimetype: z.string().regex(/png$|jpg$|jpeg$|webp$|gif$/, { message: `image type must be one among [${ACCEPTED_EXTENSIONS}]` }),
+  buffer: z.any(),
+  size: z.number()
+    .min(2 * 1024, { message: "image size must be greater than 2 KB" })
+    .max(10 * 1024 * 1024, { message: "image size must be less than 10 MB" })
+});
 
 export const zImage = (resource: MainResources) =>
-  extendApi(zImageValidator, {
+  extendApi(z.any().optional(), {
     description: `The image file that represents this ${resource}`,
     format: 'binary',
     type: 'string',
+    required: ['image']
   });

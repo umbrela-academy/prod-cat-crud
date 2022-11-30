@@ -10,7 +10,12 @@ export interface SwaggerConfig {
   path: string;
 }
 
+export interface ImageStorageConfig {
+  destination: string;
+}
+
 export interface Config {
   nest: NestConfig;
   swagger: SwaggerConfig;
+  imageStore: ImageStorageConfig;
 }
