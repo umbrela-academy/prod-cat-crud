@@ -12,6 +12,7 @@ export interface SwaggerConfig {
 
 export interface ImageStorageConfig {
   destination: string;
+  storeUrl: string;
 }
 
 export interface Config {

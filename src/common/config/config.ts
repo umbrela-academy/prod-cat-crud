@@ -17,8 +17,10 @@ export default (): Config => {
       path: process.env.SWAGGER_PATH ?? 'api',
     },
     imageStore: {
-      destination: process.env.IMG_DEST ?? 'default'
-    }
+      destination: process.env.IMG_DIRECTORY ?? 'default',
+      storeUrl:
+        process.env.IMG_STORE_URL ?? 'http://localhost:3333/api/images/',
+    },
   };
 
   return config;

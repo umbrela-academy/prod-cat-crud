@@ -17,6 +17,4 @@ export const zCreateCategory = extendApi(
   },
 );
 
-export class ImageFileDto extends createZodDto(zImage(category)) {}
-
 export class CreateCategoryDto extends createZodDto(zCreateCategory) {}

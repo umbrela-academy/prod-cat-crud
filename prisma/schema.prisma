@@ -18,47 +18,64 @@ datasource db {
 }
 
 model Category {
-  id       Int        @id @default(autoincrement())
-  name     String     @db.VarChar(500)
-  imageId  Int
-  status   Status     @default(PENDING)
-  parentId Int?
-  image    Image      @relation(fields: [imageId], references: [id])
-  parent   Category?  @relation("CatSubCat", fields: [parentId], references: [id])
-  Category Category[] @relation("CatSubCat")
-  Product  Product[]
+  id Int @id @default(autoincrement())
 
-  @@index([imageId], map: "Category_imageId_fkey")
+  parentId Int?
+  parent   Category?  @relation("CatSubCat", fields: [parentId], references: [id])
+  children Category[] @relation("CatSubCat")
+
+  name   String @db.VarChar(500)
+  status Status @default(PENDING)
+
+  // to adhere to the naming in the spec, image field has no id suffix
+  image         Int           @unique
+  categoryImage CategoryImage @relation(fields: [image], references: [id])
+
+  Product Product[]
+
   @@index([parentId], map: "Category_parentId_fkey")
 }
 
-model Image {
-  id           Int        @id @default(autoincrement())
-  destination  String     @db.VarChar(255)
-  originalname String     @db.VarChar(50)
-  filename     String     @db.VarChar(100)
-  extension    String     @db.VarChar(6)
-  productId    Int?
-  Category     Category[]
-  Product      Product?   @relation(fields: [productId], references: [id])
-
-  @@index([productId], map: "Image_productId_fkey")
+model CategoryImage {
+  id           Int       @id @default(autoincrement())
+  destination  String    @db.VarChar(255)
+  originalname String    @db.VarChar(50)
+  filename     String    @db.VarChar(100)
+  category     Category?
 }
 
 model Product {
-  id          Int         @id @default(autoincrement())
-  categoryId  Int
-  name        String      @db.VarChar(1000)
-  description String      @db.VarChar(10000)
-  parentId    Int?
-  highlights  Highlight[]
-  images      Image[]
-  category    Category    @relation(fields: [categoryId], references: [id])
-  parent      Product?    @relation("ProdSubProd", fields: [parentId], references: [id])
-  Product     Product[]   @relation("ProdSubProd")
+  id Int @id @default(autoincrement())
+
+  categoryId Int
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  parentId Int?
+  parent   Product?  @relation("ProdSubProd", fields: [parentId], references: [id])
+  children Product[] @relation("ProdSubProd")
+
+  name String @db.VarChar(1000)
+
+  description String @db.VarChar(10000)
+
+  highlights Highlight[]
+
+  images ProductImage[]
 
   @@index([categoryId], map: "Product_categoryId_fkey")
   @@index([parentId], map: "Product_parentId_fkey")
+}
+
+model ProductImage {
+  id           Int    @id @default(autoincrement())
+  destination  String @db.VarChar(255)
+  originalname String @db.VarChar(50)
+  filename     String @db.VarChar(100)
+
+  productId Int
+  Product   Product @relation(fields: [productId], references: [id])
+
+  @@index([productId], map: "ProductImage_productId_fkey")
 }
 
 model Highlight {
