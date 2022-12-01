@@ -1,10 +1,8 @@
+import { zCategoryCreateObj } from './create-category.dto';
 import { createZodDto } from '@anatine/zod-nestjs';
 import { z } from 'zod';
 
-const getCategoryDto = z.object({
-  id: z.number().min(1),
-  parentId: z.number().min(1).optional().nullable(),
-  name: z.string(),
+export const getCategoryDto = zCategoryCreateObj.extend({
   image: z.string().url(),
 });
 

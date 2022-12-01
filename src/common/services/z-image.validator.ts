@@ -1,7 +1,7 @@
 import { FileValidator, Injectable } from '@nestjs/common';
+import { ZodError } from 'zod';
 import { UploadedFileModel } from '../types/uploaded-file.model';
-import { z, ZodError } from 'zod';
-import { zImageValidator } from '../types/z.schema';
+import { zImageValidator } from '../types/z-image.schema';
 
 @Injectable()
 export class ZImageValidationPipe extends FileValidator<Record<string, any>> {

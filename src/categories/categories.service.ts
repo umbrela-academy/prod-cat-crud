@@ -1,11 +1,10 @@
-import { category } from './entities/category.entity';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../common/services/prisma.service';
 import { UploadedFileModel } from '../common/types/uploaded-file.model';
-import { ImagesService } from '../images/images.service';
-import { includeImage, toGetCategoryDto } from './category.utils';
+import { includeImage, toGetCategoryDto, toImageUrl } from './category.utils';
 import { CreateCategoryDto } from './dto/create-category.dto';
+import { CreatedCategoryDto } from './dto/created-category.dto';
 import { GetCategoryDto } from './dto/get-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 
@@ -15,32 +14,66 @@ export class CategoriesService {
     'imageStore.storeUrl',
   );
 
+  readonly defaultDestination =
+    this.configService.get<string>('imageStore.destination') ?? 'default';
+
   toDto = toGetCategoryDto(this.IMG_STORE_URL);
+  toUrl = toImageUrl(this.IMG_STORE_URL);
 
   constructor(
     private prismaService: PrismaService,
-    private imagesService: ImagesService,
     private configService: ConfigService,
   ) {}
 
   async create(
     createCategoryDto: CreateCategoryDto,
     imageFileDto: UploadedFileModel,
-  ): Promise<number> {
-    const image = await this.imagesService.create(imageFileDto);
+  ): Promise<CreatedCategoryDto> {
+    const parentConnector = await this.getParentConnector(createCategoryDto);
     return this.prismaService.category
       .create({
         data: {
           name: createCategoryDto.name,
-          parentId: createCategoryDto.parentId,
+          ...parentConnector,
           status: createCategoryDto.status,
-          image,
+          categoryImage: {
+            create: {
+              destination: this.defaultDestination,
+              originalname: imageFileDto.originalname,
+              filename: imageFileDto.filename,
+              mimetype: imageFileDto.mimetype,
+            },
+          },
         },
         select: {
           id: true,
         },
       })
-      .then((res) => res.id);
+      .then((res) => ({ ...res, ...this.toUrl(res.id) }));
+  }
+
+  private async getParentConnector(createCategoryDto: CreateCategoryDto) {
+    const parent = createCategoryDto.parentId
+      ? await this.prismaService.category.findUnique({
+          where: { id: +createCategoryDto.parentId },
+        })
+      : null;
+
+    if (createCategoryDto.parentId !== undefined && parent === null) {
+      throw new NotFoundException(
+        `No category with id: ${createCategoryDto.parentId} found`,
+      );
+    }
+
+    return parent !== null
+      ? {
+          parent: {
+            connect: {
+              id: parent.id,
+            },
+          },
+        }
+      : {};
   }
 
   async findAll(): Promise<GetCategoryDto[]> {
@@ -111,11 +144,14 @@ export class CategoriesService {
       data.name = updateCategoryDto.name;
     }
 
-    if (updateCategoryDto.status !== undefined) {
+    if (updateCategoryDto.status) {
       data.status = updateCategoryDto.status;
     }
 
-    if (updateCategoryDto.parentId !== undefined) {
+    if (
+      updateCategoryDto.parentId !== undefined &&
+      updateCategoryDto.parentId !== null
+    ) {
       const newParentExists = await this.exists(+updateCategoryDto.parentId);
       if (newParentExists) {
         data.parent = {
@@ -125,12 +161,14 @@ export class CategoriesService {
     }
 
     if (imageFileDto !== undefined) {
-      const newCategoryImage = await this.imagesService.create(imageFileDto);
-      if (newCategoryImage) {
-        data.categoryImage = {
-          connect: { id: newCategoryImage },
-        };
-      }
+      data.categoryImage = {
+        create: {
+          destination: this.defaultDestination,
+          originalname: imageFileDto.originalname,
+          filename: imageFileDto.filename,
+          mimetype: imageFileDto.mimetype,
+        },
+      };
     }
 
     return data;

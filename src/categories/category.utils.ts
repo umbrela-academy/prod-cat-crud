@@ -1,6 +1,4 @@
-import { ZodError } from 'zod';
 import { Category, CategoryImage } from '@prisma/client';
-import { BadRequestException } from '@nestjs/common';
 
 export const includeImage = {
   include: {
@@ -12,9 +10,13 @@ export type CategoryWithImage = Category & {
   categoryImage: CategoryImage;
 };
 
+export const toImageUrl = (url?: string) => (id: number) => ({
+  image: `${url}categories/${id}`,
+});
+
 export const toGetCategoryDto =
   (url?: string) =>
   ({ categoryImage, ...cat }: CategoryWithImage) => ({
     ...cat,
-    image: `${url}categories/${categoryImage.id}`,
+    ...toImageUrl(url)(categoryImage.id),
   });

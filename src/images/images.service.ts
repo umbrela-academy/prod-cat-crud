@@ -5,7 +5,6 @@ import type { Response } from 'express';
 import { createReadStream } from 'fs';
 import { join } from 'path';
 import { PrismaService } from '../common/services/prisma.service';
-import { UploadedFileModel } from '../common/types/uploaded-file.model';
 
 @Injectable()
 export class ImagesService {
@@ -16,22 +15,6 @@ export class ImagesService {
     private prismaService: PrismaService,
     private configService: ConfigService,
   ) {}
-
-  async create(imageFileDto: UploadedFileModel): Promise<number> {
-    return this.prismaService.categoryImage
-      .create({
-        data: {
-          destination: this.defaultDestination,
-          originalname: imageFileDto.originalname,
-          filename: imageFileDto.filename,
-          mimetype: imageFileDto.mimetype,
-        },
-        select: {
-          id: true,
-        },
-      })
-      .then((res) => res.id);
-  }
 
   async findOneForCategory(id: number, res: Response): Promise<StreamableFile> {
     const categoryImage = await this.prismaService.categoryImage.findUnique({

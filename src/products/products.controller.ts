@@ -1,25 +1,46 @@
+import { ZodValidationPipe } from '@anatine/zod-nestjs';
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
+  Get,
+  Param,
+  ParseArrayPipe,
+  ParseFilePipe,
+  Patch,
+  Post,
+  UploadedFiles,
+  UseInterceptors,
+  UsePipes,
 } from '@nestjs/common';
-import { ProductsService } from './products.service';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { ApiConsumes, ApiTags } from '@nestjs/swagger';
+import { ZImageValidationPipe } from '../common/services/z-image.validator';
 import { CreateProductDto } from './dto/create-product.dto';
+import { CreateHighlightDto } from './dto/create-highlight.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ProductsService } from './products.service';
 
 @ApiTags('product')
 @Controller('products')
+@UsePipes(ZodValidationPipe)
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
+  @ApiConsumes('multipart/form-data')
   @Post()
-  create(@Body() createProductDto: CreateProductDto) {
-    return this.productsService.create(createProductDto);
+  @UseInterceptors(FilesInterceptor('images'))
+  create(
+    @Body(new ParseArrayPipe({ items: CreateHighlightDto }))
+    createProductDto: CreateProductDto,
+    @UploadedFiles(
+      new ParseFilePipe({
+        validators: [new ZImageValidationPipe()],
+      }),
+    )
+    images: Express.Multer.File[],
+  ) {
+    return this.productsService.create(createProductDto, images);
   }
 
   @Get()

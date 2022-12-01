@@ -64,6 +64,8 @@ model Product {
 
   images ProductImage[]
 
+  status Status @default(PENDING)
+
   @@index([categoryId], map: "Product_categoryId_fkey")
   @@index([parentId], map: "Product_parentId_fkey")
 }
