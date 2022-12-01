@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ImagesService } from './images.service';
-import { PrismaService } from "../common/services/prisma.service";
-import { MulterModule } from "@nestjs/platform-express";
-import { ConfigModule, ConfigService } from "@nestjs/config";
-import { diskStorage } from "multer";
+import { PrismaService } from '../common/services/prisma.service';
+import { MulterModule } from '@nestjs/platform-express';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { diskStorage } from 'multer';
+import { ImagesController } from './images.controller';
 
 @Module({
   providers: [ImagesService, PrismaService],
@@ -12,12 +13,13 @@ import { diskStorage } from "multer";
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
         storage: diskStorage({
-          destination: configService.get<string>("imageStore.destination"),
+          destination: configService.get<string>('imageStore.destination'),
         }),
       }),
-      inject: [ConfigService]
+      inject: [ConfigService],
     }),
   ],
-  exports: [ImagesService, MulterModule]
+  exports: [ImagesService, MulterModule],
+  controllers: [ImagesController],
 })
 export class ImagesModule {}

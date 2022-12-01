@@ -1,4 +1,3 @@
-import { complainIfInvalid } from './category.utils';
 import { zIdParam, zZeroIndexParam } from './../common/types/z.schema';
 import { ZodValidationPipe } from '@anatine/zod-nestjs';
 import {
@@ -24,6 +23,7 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { GetCategoryDto } from './dto/get-category.dto';
 import { z } from 'zod';
+import { complainIfInvalid } from '../common/utils/validation-utils';
 
 @ApiTags('category')
 @Controller('categories')

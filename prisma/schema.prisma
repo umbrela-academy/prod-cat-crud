@@ -37,11 +37,13 @@ model Category {
 }
 
 model CategoryImage {
-  id           Int       @id @default(autoincrement())
-  destination  String    @db.VarChar(255)
-  originalname String    @db.VarChar(50)
-  filename     String    @db.VarChar(100)
-  category     Category?
+  id           Int    @id @default(autoincrement())
+  destination  String @db.VarChar(255)
+  originalname String @db.VarChar(50)
+  filename     String @db.VarChar(100)
+  mimetype     String @db.VarChar(20)
+
+  category Category?
 }
 
 model Product {
@@ -71,6 +73,7 @@ model ProductImage {
   destination  String @db.VarChar(255)
   originalname String @db.VarChar(50)
   filename     String @db.VarChar(100)
+  mimetype     String @db.VarChar(20)
 
   productId Int
   Product   Product @relation(fields: [productId], references: [id])

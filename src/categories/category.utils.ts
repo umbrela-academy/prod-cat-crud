@@ -16,17 +16,5 @@ export const toGetCategoryDto =
   (url?: string) =>
   ({ categoryImage, ...cat }: CategoryWithImage) => ({
     ...cat,
-    image: `${url}${categoryImage.id}`,
+    image: `${url}categories/${categoryImage.id}`,
   });
-
-export const complainIfInvalid = (zValidator: () => void) => {
-  try {
-    zValidator();
-  } catch (e) {
-    if (e instanceof ZodError) {
-      throw new BadRequestException(
-        e.issues.map((issue) => issue.message).join('& '),
-      );
-    }
-  }
-};
