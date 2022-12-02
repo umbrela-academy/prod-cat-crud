@@ -3,13 +3,18 @@ import { Highlight, Product, ProductImage } from '@prisma/client';
 export const includeHightsAndImages = {
   include: {
     images: true,
-    highlights: true,
+    highlights: {
+      select: {
+        id: true,
+        description: true,
+      },
+    },
   },
 };
 
 export type ProductWithHighlightsAndImages = Product & {
   images: ProductImage[];
-  highlights: Highlight[];
+  highlights: Omit<Highlight, 'productId'>[];
 };
 
 export const toImageUrl = (url?: string) => (id: number) =>

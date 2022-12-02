@@ -9,6 +9,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Put,
   Response,
   UploadedFiles,
   UseInterceptors,
@@ -16,25 +17,35 @@ import {
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ApiConsumes, ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
-import { ZImagesValidationPipe } from 'src/common/services/z-images.validator';
-import { zIdParam, zZeroIndexParam } from 'src/common/types/z.schema';
-import { complainIfInvalid } from 'src/common/utils/validation-utils';
-import { z } from 'zod';
-import { CreateProductDto } from './dto/create-product.dto';
-import { GetProductDto } from './dto/get-product.dto';
-import { UpdateProductDto } from './dto/update-product.dto';
-import { ProductsService } from './products.service';
 import { Response as Res } from 'express';
+import { z } from 'zod';
+import { ZImagesValidationPipe } from '../common/services/z-images.validator';
+import { zIdParam, zZeroIndexParam } from '../common/types/z.schema';
+import { complainIfInvalid } from '../common/utils/validation-utils';
+import {
+  CreateHighlightDto,
+  CreateHightlightsDto,
+} from './dto/create-highlight.dto';
+import { CreateProductDto } from './dto/create-product.dto';
+import { CreatedProductDto } from './dto/created-product.dto';
+import { GetProductDto } from './dto/get-product.dto';
+import { UpdateProductHighlightsDto } from './dto/update-product-highlights.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
+import { ProductRelationsService } from './services/product-relations.service';
+import { ProductsService } from './services/products.service';
 
 @ApiTags('product')
 @Controller('products')
 @UsePipes(ZodValidationPipe)
 export class ProductsController {
-  constructor(private readonly productsService: ProductsService) {}
+  constructor(
+    private readonly productsService: ProductsService,
+    private readonly productRelationsService: ProductRelationsService,
+  ) {}
 
   @ApiCreatedResponse({
     description: 'The category has been successfully created.',
-    type: CreateProductDto,
+    type: CreatedProductDto,
   })
   @ApiConsumes('multipart/form-data')
   @Post()
@@ -49,6 +60,7 @@ export class ProductsController {
     images: Express.Multer.File[],
     @Response() response: Res,
   ) {
+    console.log('received', createProductDto);
     const createdDto = await this.productsService.create(
       createProductDto,
       images,
@@ -87,20 +99,43 @@ export class ProductsController {
     return this.productsService.findOne(id);
   }
 
-  @ApiConsumes('multipart/form-data')
   @Patch(':id')
   @UseInterceptors(FilesInterceptor('images'))
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateProductDto: UpdateProductDto,
+  ) {
+    return this.productsService.updateScalars(id, updateProductDto);
+  }
+
+  @ApiConsumes('multipart/form-data')
+  @Post(':id/images')
+  addImages(
+    @Param('id', ParseIntPipe) id: number,
     @UploadedFiles(
       new ParseFilePipe({
         validators: [new ZImagesValidationPipe()],
       }),
     )
-    images?: Express.Multer.File[],
+    images: Express.Multer.File[],
   ) {
-    return this.productsService.update(id, updateProductDto, images);
+    return this.productRelationsService.addImages(id, images);
+  }
+
+  @Post(':id/highlights')
+  addHighlights(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() highlights: CreateHightlightsDto,
+  ) {
+    return this.productRelationsService.addHighlights(id, highlights);
+  }
+
+  @Put(':id/highlights')
+  updateHighlights(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() highlightUpdates: UpdateProductHighlightsDto,
+  ) {
+    return this.productRelationsService.updateHighlights(id, highlightUpdates);
   }
 
   @Delete(':id')
@@ -113,7 +148,7 @@ export class ProductsController {
     @Param('id', ParseIntPipe) id: number,
     @Param('imageId', ParseIntPipe) imageId: number,
   ) {
-    return this.productsService.removeImage(id, imageId);
+    return this.productRelationsService.removeImage(id, imageId);
   }
 
   @Delete(':id/highlight/:highlightId')
@@ -121,6 +156,6 @@ export class ProductsController {
     @Param('id', ParseIntPipe) id: number,
     @Param('highlightId', ParseIntPipe) highlightId: number,
   ) {
-    return this.productsService.removeHighlight(id, highlightId);
+    return this.productRelationsService.removeHighlight(id, highlightId);
   }
 }

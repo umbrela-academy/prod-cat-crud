@@ -1,6 +1,6 @@
 import { createZodDto } from '@anatine/zod-nestjs';
 import { extendApi } from '@anatine/zod-openapi';
-import { highlight, zId } from 'src/common/types/z.schema';
+import { highlight, zId } from '../../common/types/z.schema';
 import { zHighlight } from './create-highlight.dto';
 
 export const zGetHighlight = extendApi(

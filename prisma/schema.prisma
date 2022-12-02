@@ -85,7 +85,6 @@ model ProductImage {
 
 model Highlight {
   id          Int     @id @default(autoincrement())
-  title       String  @db.VarChar(500)
   description String  @db.VarChar(2000)
   productId   Int
   Product     Product @relation(fields: [productId], references: [id])
