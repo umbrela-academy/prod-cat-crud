@@ -1,10 +1,9 @@
 import { Module } from '@nestjs/common';
-import { ImagesService } from './images.service';
-import { PrismaService } from '../common/services/prisma.service';
-import { MulterModule } from '@nestjs/platform-express';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { diskStorage } from 'multer';
+import { MulterModule } from '@nestjs/platform-express';
+import { PrismaService } from '../common/services/prisma.service';
 import { ImagesController } from './images.controller';
+import { ImagesService } from './images.service';
 
 @Module({
   providers: [ImagesService, PrismaService],
@@ -12,9 +11,7 @@ import { ImagesController } from './images.controller';
     MulterModule.registerAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
-        storage: diskStorage({
-          destination: configService.get<string>('imageStore.destination'),
-        }),
+        dest: configService.get<string>('imageStore.destination'),
       }),
       inject: [ConfigService],
     }),

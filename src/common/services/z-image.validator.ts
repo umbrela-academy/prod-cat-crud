@@ -10,7 +10,6 @@ export class ZImageValidationPipe extends FileValidator<Record<string, any>> {
   }
 
   isValid(file?: UploadedFileModel): boolean | Promise<boolean> {
-    console.log('file', file);
     return zImageValidator.safeParse(file).success;
   }
 

@@ -21,7 +21,7 @@ import { Response as Res } from 'express';
 import { z } from 'zod';
 import { ZImagesValidationPipe } from '../common/services/z-images.validator';
 import { zIdParam, zZeroIndexParam } from '../common/types/z.schema';
-import { complainIfInvalid } from '../common/utils/validation-utils';
+import { throw400IfInvalid } from '../common/utils/validation-utils';
 import {
   CreateHighlightDto,
   CreateHightlightsDto,
@@ -81,7 +81,7 @@ export class ProductsController {
     @Param('pageNumber', ParseIntPipe) pageNumber: number,
     @Param('pageSize', ParseIntPipe) pageSize: number,
   ): Promise<GetProductDto[]> {
-    complainIfInvalid(() => {
+    throw400IfInvalid(() => {
       z.object({
         pageNumber: zZeroIndexParam('page number'),
         pageSize: zIdParam('page size'),
@@ -95,7 +95,7 @@ export class ProductsController {
 
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
-    complainIfInvalid(() => zIdParam().parse(id));
+    throw400IfInvalid(() => zIdParam().parse(id));
     return this.productsService.findOne(id);
   }
 

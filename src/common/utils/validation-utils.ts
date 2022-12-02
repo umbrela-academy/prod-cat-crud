@@ -1,7 +1,7 @@
 import { BadRequestException } from '@nestjs/common';
 import { ZodError } from 'zod';
 
-export const complainIfInvalid = (zValidator: () => void) => {
+export const throw400IfInvalid = (zValidator: () => void) => {
   try {
     zValidator();
   } catch (e) {

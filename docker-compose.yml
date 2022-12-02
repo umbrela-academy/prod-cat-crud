@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  prod-cat-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: prod-cat-api
+    restart: always
+    ports:
+      - 3342:${PORT}
+    depends_on:
+      - mysql
+      
+    env_file:
+      - .env
+    volumes:
+      - prod-cat-api:/app/${IMG_DIRECTORY}
+  
+  mysql:
+    image: mysql:8.0.31
+    container_name: prod-cat-db
+    restart: always
+    ports:
+      - 3307:3306
+    env_file:
+      - .env
+    volumes:
+      - mysql:/var/lib/mysql
+    healthcheck:
+      test: mysql ${MYSQL_DATABASE} --user=${MYSQL_USER} --password='${MYSQL_PASSWORD}' --silent --execute "SELECT 1;"
+      interval: 60s
+      timeout: 30s
+      retries: 5
+
+volumes:
+  mysql:
+    name: prod-cat-db-vol
+  prod-cat-api:
+    name: prod-cat-api-vol

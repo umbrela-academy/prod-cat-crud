@@ -19,7 +19,7 @@ import { ApiConsumes, ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
 import { Response as Res } from 'express';
 import { z } from 'zod';
 import { ZImageValidationPipe } from '../common/services/z-image.validator';
-import { complainIfInvalid } from '../common/utils/validation-utils';
+import { throw400IfInvalid } from '../common/utils/validation-utils';
 import { zIdParam, zZeroIndexParam } from './../common/types/z.schema';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
@@ -70,7 +70,7 @@ export class CategoriesController {
     @Param('pageNumber', ParseIntPipe) pageNumber: number,
     @Param('pageSize', ParseIntPipe) pageSize: number,
   ): Promise<GetCategoryDto[]> {
-    complainIfInvalid(() => {
+    throw400IfInvalid(() => {
       z.object({
         pageNumber: zZeroIndexParam('page number'),
         pageSize: zIdParam('page size'),
@@ -86,7 +86,7 @@ export class CategoriesController {
   findOne(
     @Param('id', ParseIntPipe) id: number,
   ): Promise<GetCategoryDto | null> {
-    complainIfInvalid(() => zIdParam().parse(id));
+    throw400IfInvalid(() => zIdParam().parse(id));
     return this.categoriesService.findOne(id);
   }
 
@@ -103,13 +103,13 @@ export class CategoriesController {
     )
     image?: Express.Multer.File,
   ) {
-    complainIfInvalid(() => zIdParam().parse(id));
+    throw400IfInvalid(() => zIdParam().parse(id));
     return this.categoriesService.update(id, updateCategoryDto, image);
   }
 
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
-    complainIfInvalid(() => zIdParam().parse(id));
+    throw400IfInvalid(() => zIdParam().parse(id));
     return this.categoriesService.remove(id);
   }
 }

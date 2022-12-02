@@ -10,7 +10,7 @@ import {
 import { ApiProduces, ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
 import { ImagesService } from './images.service';
-import { complainIfInvalid } from '../common/utils/validation-utils';
+import { throw400IfInvalid } from '../common/utils/validation-utils';
 import { WHITELISTED_MIMES } from '../common/types/z-image.schema';
 
 @ApiTags('image')
@@ -24,7 +24,7 @@ export class ImagesController {
     @Param('id', ParseIntPipe) id: number,
     @Res({ passthrough: true }) res: Response,
   ) {
-    complainIfInvalid(() => zIdParam().parse(id));
+    throw400IfInvalid(() => zIdParam().parse(id));
     return this.imagesService.findOneForProduct(id, res);
   }
 
@@ -34,7 +34,7 @@ export class ImagesController {
     @Param('id', ParseIntPipe) id: number,
     @Res({ passthrough: true }) res: Response,
   ): Promise<StreamableFile> {
-    complainIfInvalid(() => zIdParam().parse(id));
+    throw400IfInvalid(() => zIdParam().parse(id));
     return this.imagesService.findOneForCategory(id, res);
   }
 }
