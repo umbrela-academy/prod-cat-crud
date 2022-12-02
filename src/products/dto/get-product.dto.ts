@@ -9,8 +9,10 @@ const getProductDto = zProductCreateObj
   })
   .omit({
     highlights: true,
+    parentId: true,
   })
   .extend({
+    parentId: z.number().nullable(),
     highlights: z.array(zGetHighlight),
   });
 

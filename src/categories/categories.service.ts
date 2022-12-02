@@ -61,7 +61,7 @@ export class CategoriesService {
 
     if (createCategoryDto.parentId !== undefined && parent === null) {
       throw new NotFoundException(
-        `No category with id: ${createCategoryDto.parentId} found`,
+        `No parent category with id: ${createCategoryDto.parentId} found`,
       );
     }
 
@@ -152,10 +152,10 @@ export class CategoriesService {
       updateCategoryDto.parentId !== undefined &&
       updateCategoryDto.parentId !== null
     ) {
-      const newParentExists = await this.exists(+updateCategoryDto.parentId);
+      const newParentExists = await this.exists(updateCategoryDto.parentId);
       if (newParentExists) {
         data.parent = {
-          connect: { id: +updateCategoryDto.parentId },
+          connect: { id: updateCategoryDto.parentId },
         };
       }
     }

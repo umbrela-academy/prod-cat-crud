@@ -3,12 +3,25 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaService } from './../common/services/prisma.service';
 import { UploadedFileModel } from './../common/types/uploaded-file.model';
 import { CreateProductDto } from './dto/create-product.dto';
+import { GetProductDto } from './dto/get-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import {
+  includeHightsAndImages,
+  toGetProductDto,
+  toImageUrl,
+} from './product.utils';
 
 @Injectable()
 export class ProductsService {
+  readonly IMG_STORE_URL = this.configService.get<string>(
+    'imageStore.storeUrl',
+  );
+
   readonly defaultDestination =
     this.configService.get<string>('imageStore.destination') ?? 'default';
+
+  toDto = toGetProductDto(this.IMG_STORE_URL);
+  toUrl = toImageUrl(this.IMG_STORE_URL);
 
   constructor(
     private prismaService: PrismaService,
@@ -26,12 +39,7 @@ export class ProductsService {
       createProductDto.parentId,
     );
 
-    const images = imageFileDtos.map((imageFileDto) => ({
-      destination: this.defaultDestination,
-      originalname: imageFileDto.originalname,
-      filename: imageFileDto.filename,
-      mimetype: imageFileDto.mimetype,
-    }));
+    const images = this.getImagesPayload(imageFileDtos);
 
     return this.prismaService.product.create({
       data: {
@@ -39,11 +47,9 @@ export class ProductsService {
         ...parentConnector,
         ...categoryConnector,
         status: createProductDto.status,
-        images: {
-          create: images,
-        },
+        images,
         highlights: {
-          create: createProductDto.highlights,
+          createMany: { data: createProductDto.highlights },
         },
         description: createProductDto.description,
       },
@@ -53,7 +59,17 @@ export class ProductsService {
     });
   }
 
-  private async getParentConnector(id?: string | null) {
+  private getImagesPayload(imageFileDtos: UploadedFileModel[]) {
+    const data = imageFileDtos.map((imageFileDto) => ({
+      destination: this.defaultDestination,
+      originalname: imageFileDto.originalname,
+      filename: imageFileDto.filename,
+      mimetype: imageFileDto.mimetype,
+    }));
+    return { createMany: { data } };
+  }
+
+  private async getParentConnector(id?: number) {
     const parent = id
       ? await this.prismaService.product.findUnique({
           where: { id: +id },
@@ -61,7 +77,7 @@ export class ProductsService {
       : null;
 
     if (id !== undefined && parent === null) {
-      throw new NotFoundException(`No product with id: ${id} found`);
+      throw new NotFoundException(`No parent product with id: ${id} found`);
     }
 
     return parent !== null
@@ -75,7 +91,7 @@ export class ProductsService {
       : {};
   }
 
-  private async getCategoryConnector(id?: string | null) {
+  private async getCategoryConnector(id?: number) {
     const category = id
       ? await this.prismaService.category.findUnique({
           where: { id: +id },
@@ -95,19 +111,177 @@ export class ProductsService {
     };
   }
 
-  findAll() {
-    return `This action returns all products`;
+  async findAll(): Promise<GetProductDto[]> {
+    return (
+      await this.prismaService.product.findMany(includeHightsAndImages)
+    ).map(this.toDto);
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} product`;
+  async findPaged(
+    pageNumber: number,
+    pageSize: number,
+  ): Promise<GetProductDto[]> {
+    const productsWithImage = await this.prismaService.product.findMany({
+      skip: pageNumber * pageSize,
+      take: pageSize,
+      ...includeHightsAndImages,
+    });
+    return productsWithImage.map(this.toDto);
   }
 
-  update(id: number, updateProductDto: UpdateProductDto) {
-    return `This action updates a #${id} product`;
+  async findOne(id: number): Promise<GetProductDto | null> {
+    const productWithRelations = await this.prismaService.product.findUnique({
+      where: {
+        id,
+      },
+      ...includeHightsAndImages,
+    });
+    return productWithRelations ? this.toDto(productWithRelations) : null;
+  }
+
+  async update(
+    id: number,
+    updateProductDto: UpdateProductDto,
+    imageFileDtos?: UploadedFileModel[],
+  ) {
+    const productExists = await this.exists(id);
+
+    if (!productExists) {
+      throw new NotFoundException(`Product with id: ${id} was not found`);
+    }
+
+    const data = await this.buildUpdateData(updateProductDto, imageFileDtos);
+
+    return this.prismaService.product.update({
+      where: {
+        id,
+      },
+      data,
+    });
+  }
+
+  private async buildUpdateData(
+    updateProductDto: UpdateProductDto,
+    imageFileDtos?: UploadedFileModel[],
+  ) {
+    const data: any = {};
+
+    if (updateProductDto.name !== undefined) {
+      data.name = updateProductDto.name;
+    }
+
+    if (updateProductDto.status) {
+      data.status = updateProductDto.status;
+    }
+
+    data.category = await this.getCategoryConnector(
+      updateProductDto.categoryId,
+    );
+
+    const parentConnector = await this.getParentConnector(
+      updateProductDto.parentId,
+    );
+
+    if (parentConnector.parent) {
+      data.parent = parentConnector.parent;
+    }
+
+    if (imageFileDtos && imageFileDtos.length) {
+      data.images = this.getImagesPayload(imageFileDtos);
+    }
+
+    return data;
+  }
+
+  private async exists(id: number, isProduct = true): Promise<boolean> {
+    const whereQuery = {
+      where: {
+        id,
+      },
+    };
+    const found = isProduct
+      ? await this.prismaService.product.findUnique(whereQuery)
+      : await this.prismaService.category.findUnique(whereQuery);
+    return found !== null;
   }
 
   remove(id: number) {
-    return `This action removes a #${id} product`;
+    return this.prismaService.product.delete({
+      where: {
+        id,
+      },
+    });
+  }
+
+  removeHighlight(id: number, highlightId: number) {
+    const productWithHighlight = this.prismaService.product.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        highlights: {
+          where: {
+            id: highlightId,
+          },
+        },
+      },
+    });
+
+    if (productWithHighlight === null) {
+      throw new NotFoundException(
+        `Highlight with id: ${highlightId} was not found in product with id: ${id}`,
+      );
+    }
+
+    return this.prismaService.product.update({
+      where: {
+        id,
+      },
+      data: {
+        highlights: {
+          delete: {
+            id: highlightId,
+          },
+        },
+      },
+    });
+  }
+
+  removeImage(id: number, imageId: number) {
+    const productWithImage = this.prismaService.product.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        images: {
+          where: {
+            id: imageId,
+          },
+        },
+      },
+    });
+
+    if (productWithImage === null) {
+      throw new NotFoundException(
+        `Image with id: ${imageId} was not found in product with id: ${id}`,
+      );
+    }
+
+    // const imagePath = productWithImage.images
+    // TODO
+    // unlink()
+
+    return this.prismaService.product.update({
+      where: {
+        id,
+      },
+      data: {
+        images: {
+          delete: {
+            id: imageId,
+          },
+        },
+      },
+    });
   }
 }

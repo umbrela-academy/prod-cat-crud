@@ -50,7 +50,6 @@ export class CategoriesController {
     image: Express.Multer.File,
     @Response() response: Res,
   ) {
-    console.log('start parent conn', createCategoryDto);
     const createdDto = await this.categoriesService.create(
       createCategoryDto,
       image,
@@ -97,7 +96,12 @@ export class CategoriesController {
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateCategoryDto: UpdateCategoryDto,
-    @UploadedFile() image?: Express.Multer.File,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [new ZImageValidationPipe()],
+      }),
+    )
+    image?: Express.Multer.File,
   ) {
     complainIfInvalid(() => zIdParam().parse(id));
     return this.categoriesService.update(id, updateCategoryDto, image);

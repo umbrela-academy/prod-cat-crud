@@ -1,16 +1,15 @@
 import { createZodDto } from '@anatine/zod-nestjs';
+import { extendApi } from '@anatine/zod-openapi';
+import { z } from 'zod';
+import { zImages } from '../../common/types/z-image.schema';
 import {
   category,
   product,
-  zId,
   zIdNumStr,
   zName,
   zStatus,
   zString,
 } from './../../common/types/z.schema';
-import { extendApi } from '@anatine/zod-openapi';
-import { z } from 'zod';
-import { zImage } from '../../common/types/z-image.schema';
 import { zHighlight } from './create-highlight.dto';
 
 export const zProductCreateObj = z.object({
@@ -35,7 +34,7 @@ export const zProductCreateObj = z.object({
 
 export const zCreateProduct = extendApi(
   zProductCreateObj.extend({
-    images: z.array(zImage(product)),
+    images: zImages(product),
   }),
   {
     description: `The schema for the ${product} model`,

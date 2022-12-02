@@ -45,9 +45,18 @@ export const zImageValidator = z.object({
     .max(MAX_FILE_SIZE, { message: 'image size must be less than 10 MB' }),
 });
 
+export const zImagesValidator = z.array(zImageValidator);
+
 export const zImage = (resource: MainResource) =>
   extendApi(z.any().optional(), {
     description: `The image file that represents this ${resource}`,
+    format: 'binary',
+    type: 'string',
+  });
+
+export const zImages = (resource: MainResource) =>
+  extendApi(z.array(z.any()).optional(), {
+    description: `The image files that represents this ${resource}`,
     format: 'binary',
     type: 'string',
   });

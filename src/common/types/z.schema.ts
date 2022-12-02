@@ -26,16 +26,26 @@ export const zId = (entity: EntityName, relation = '', optional = false) =>
     },
   );
 
+const numStringT = (schema: z.ZodString) =>
+  schema
+    .transform((val) => parseInt(val))
+    .refine((val) => !isNaN(val), 'must be a number')
+    .refine((val) => val > 0, 'must be greater than 0');
+
 export const zIdNumStr = (
   entity: EntityName,
   relation = '',
   optional = false,
-) =>
-  extendApi(optional ? z.string().min(1).optional() : z.string().min(1), {
+) => {
+  const numStrSchema = optional
+    ? numStringT(z.string().min(1)).optional()
+    : numStringT(z.string().min(1));
+  return extendApi(numStrSchema, {
     description: `The unique internal identity number for the ${entity} ${relation}`,
     type: 'number',
     minimum: 1,
   });
+};
 
 export const zStatus = (entity: MainResource) =>
   extendApi(zStatuses, {
