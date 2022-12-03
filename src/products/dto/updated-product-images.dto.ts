@@ -1,7 +1,7 @@
 import { createZodDto } from '@anatine/zod-nestjs';
 import { z } from 'zod';
 
-export const updatedProductImagesDto = z.object({
+const updatedProductImagesDto = z.object({
   id: z.number().min(0),
   url: z.string().url(),
 });

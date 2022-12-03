@@ -7,7 +7,7 @@ import {
   Res,
   StreamableFile,
 } from '@nestjs/common';
-import { ApiProduces, ApiTags } from '@nestjs/swagger';
+import { ApiOkResponse, ApiProduces, ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
 import { ImagesService } from './images.service';
 import { throw400IfInvalid } from '../common/utils/validation-utils';
@@ -18,16 +18,24 @@ import { WHITELISTED_MIMES } from '../common/types/z-image.schema';
 export class ImagesController {
   constructor(private imagesService: ImagesService) {}
 
+  @ApiOkResponse({
+    type: StreamableFile,
+    description: 'The following product image was found.',
+  })
   @ApiProduces(...WHITELISTED_MIMES)
   @Get('products/:id')
   findOneForProduct(
     @Param('id', ParseIntPipe) id: number,
     @Res({ passthrough: true }) res: Response,
-  ) {
+  ): Promise<StreamableFile> {
     throw400IfInvalid(() => zIdParam().parse(id));
     return this.imagesService.findOneForProduct(id, res);
   }
 
+  @ApiOkResponse({
+    type: StreamableFile,
+    description: 'The following category image was found.',
+  })
   @ApiProduces(...WHITELISTED_MIMES)
   @Get('categories/:id')
   async findOneForCategory(
