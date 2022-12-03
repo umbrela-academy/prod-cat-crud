@@ -30,8 +30,8 @@ services:
       - mysql:/var/lib/mysql
     healthcheck:
       test: mysql ${MYSQL_DATABASE} --user=${MYSQL_USER} --password='${MYSQL_PASSWORD}' --silent --execute "SELECT 1;"
-      interval: 600s
-      timeout: 10s
+      interval: 30s
+      timeout: 60s
       retries: 5
 
 volumes:

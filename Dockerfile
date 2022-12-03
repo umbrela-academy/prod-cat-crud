@@ -20,5 +20,6 @@ WORKDIR /app
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/package*.json ./
 COPY --from=build /app/dist/ ./dist/
+COPY --from=dependencies /app/prisma ./prisma
 
 CMD ["npm", "run", "start:migrate:prod"]
