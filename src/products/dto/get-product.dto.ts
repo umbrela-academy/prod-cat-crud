@@ -12,6 +12,7 @@ export const getProductDto = zProductCreateObj
     parentId: true,
   })
   .extend({
+    id: z.number().min(1),
     parentId: z.number().nullable(),
     highlights: z.array(zGetHighlight),
   });

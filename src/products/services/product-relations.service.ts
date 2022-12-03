@@ -1,3 +1,5 @@
+import { Highlight } from '@prisma/client';
+import { product } from './../../common/types/z.schema';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { UpdateProductHighlightsDto } from './../dto/update-product-highlights.dto';
 import { ProductCommonsService } from './product-commons.service';
@@ -162,12 +164,12 @@ export class ProductRelationsService {
     }
   }
 
-  async removeHighlight(id: number, highlightId: number) {
+  async removeHighlight(id: number, highlightId: number): Promise<string> {
     const productWithHighlight = await this.prismaService.product.findUnique({
       where: {
         id,
       },
-      select: {
+      include: {
         highlights: {
           where: {
             id: highlightId,
@@ -177,12 +179,18 @@ export class ProductRelationsService {
     });
 
     if (productWithHighlight === null) {
+      throw new NotFoundException(`Product with id: ${id} was not found`);
+    }
+    if (
+      productWithHighlight.highlights === null ||
+      productWithHighlight.highlights.length === 0
+    ) {
       throw new NotFoundException(
         `Highlight with id: ${highlightId} was not found in product with id: ${id}`,
       );
     }
 
-    return this.prismaService.product.update({
+    await this.prismaService.product.update({
       where: {
         id,
       },
@@ -194,29 +202,36 @@ export class ProductRelationsService {
         },
       },
     });
+
+    return productWithHighlight.highlights[0].description;
   }
 
-  removeImage(id: number, imageId: number) {
-    const productWithImage = this.prismaService.product.findUnique({
+  async removeImage(id: number, imageId: number): Promise<string> {
+    const productWithImage = await this.prismaService.product.findUnique({
       where: {
         id,
       },
-      select: {
+      include: {
         images: {
-          where: {
-            id: imageId,
-          },
+          where: { id: imageId },
         },
       },
     });
 
     if (productWithImage === null) {
+      throw new NotFoundException(`Product with id: ${id} was not found`);
+    }
+
+    if (
+      productWithImage.images === null ||
+      productWithImage.images.length === 0
+    ) {
       throw new NotFoundException(
         `Image with id: ${imageId} was not found in product with id: ${id}`,
       );
     }
 
-    return this.prismaService.product.update({
+    await this.prismaService.product.update({
       where: {
         id,
       },
@@ -228,5 +243,7 @@ export class ProductRelationsService {
         },
       },
     });
+
+    return this.productCommonsService.toUrl(productWithImage.images[0].id);
   }
 }

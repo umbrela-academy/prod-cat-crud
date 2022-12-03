@@ -7,7 +7,6 @@ import { GetProductDto } from '../dto/get-product.dto';
 import { UpdateProductDto } from '../dto/update-product.dto';
 import { includeHightsAndImages } from '../product.utils';
 import { ProductCommonsService } from './product-commons.service';
-
 @Injectable()
 export class ProductsService {
   constructor(
@@ -26,7 +25,7 @@ export class ProductsService {
       createProductDto.parentId,
     );
 
-    const images = this.getImagesPayload(imageFileDtos);
+    const images = this.productCommonsService.getImagesPayload(imageFileDtos);
 
     return this.prismaService.product
       .create({
@@ -62,16 +61,6 @@ export class ProductsService {
           this.productCommonsService.toUrl(image.id),
         ),
       }));
-  }
-
-  getImagesPayload(imageFileDtos: UploadedFileModel[]) {
-    const data = imageFileDtos.map((imageFileDto) => ({
-      destination: this.productCommonsService.defaultDestination,
-      originalname: imageFileDto.originalname,
-      filename: imageFileDto.filename,
-      mimetype: imageFileDto.mimetype,
-    }));
-    return { createMany: { data } };
   }
 
   private async getParentConnector(id?: number) {
@@ -146,21 +135,23 @@ export class ProductsService {
       : null;
   }
 
-  async updateScalars(id: number, updateProductDto: UpdateProductDto) {
-    const productExists = await this.productCommonsService.exists(id);
-
-    if (!productExists) {
-      throw new NotFoundException(`Product with id: ${id} was not found`);
-    }
+  async updateScalars(
+    id: number,
+    updateProductDto: UpdateProductDto,
+  ): Promise<GetProductDto> {
+    await this.throwIfNotFound(id);
 
     const data = await this.buildUpdateData(updateProductDto);
 
-    return this.prismaService.product.update({
-      where: {
-        id,
-      },
-      data,
-    });
+    return this.prismaService.product
+      .update({
+        where: {
+          id,
+        },
+        data,
+        ...includeHightsAndImages,
+      })
+      .then((res) => this.productCommonsService.toDto(res));
   }
 
   private async buildUpdateData(updateProductDto: UpdateProductDto) {
@@ -174,9 +165,9 @@ export class ProductsService {
       data.status = updateProductDto.status;
     }
 
-    data.category = await this.getCategoryConnector(
-      updateProductDto.categoryId,
-    );
+    data.category = (
+      await this.getCategoryConnector(updateProductDto.categoryId)
+    ).category;
 
     const parentConnector = await this.getParentConnector(
       updateProductDto.parentId,
@@ -189,11 +180,25 @@ export class ProductsService {
     return data;
   }
 
-  remove(id: number) {
-    return this.prismaService.product.delete({
-      where: {
-        id,
-      },
-    });
+  async remove(id: number): Promise<GetProductDto> {
+    await this.throwIfNotFound(id);
+    return this.prismaService.product
+      .delete({
+        where: {
+          id,
+        },
+        include: {
+          highlights: true,
+          images: true,
+        },
+      })
+      .then((res) => this.productCommonsService.toDto(res));
+  }
+
+  private async throwIfNotFound(id: number) {
+    const productExists = await this.productCommonsService.exists(id);
+    if (!productExists) {
+      throw new NotFoundException(`Product with id: ${id} was not found`);
+    }
   }
 }

@@ -9,7 +9,7 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../common/services/prisma.service';
 
 /**
- * Unit Tests for the Controller layer only.
+ * Unit Tests for the Categories Controller layer.
  * Checks that the request and response contracts continue to be adhered to
  * and that the controller delegates to the service layer properly.
  */

@@ -1,4 +1,3 @@
-import { zImageValidator } from './../common/types/z-image.schema';
 import { ZodValidationPipe } from '@anatine/zod-nestjs';
 import {
   Body,
@@ -26,7 +25,7 @@ import {
 import { z } from 'zod';
 import { ZImageValidationPipe } from '../common/services/z-image.validator';
 import { throw400IfInvalid } from '../common/utils/validation-utils';
-import { ZImageOptionalValidationPipe } from './../common/services/z-optional-image-validator';
+import { zImageValidator } from './../common/types/z-image.schema';
 import { zIdParam, zIdRefined } from './../common/types/z.schema';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
