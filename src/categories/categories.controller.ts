@@ -75,7 +75,7 @@ export class CategoriesController {
     description: 'The following categories were found.',
   })
   @Get('/paged/:pageNumber/:pageSize')
-  findPaged(
+  async findPaged(
     @Param('pageNumber', ParseIntPipe) pageNumber: number,
     @Param('pageSize', ParseIntPipe) pageSize: number,
   ): Promise<GetCategoryDto[]> {
@@ -96,7 +96,7 @@ export class CategoriesController {
     description: 'The following category was found. (Empty if none found)',
   })
   @Get(':id')
-  findOne(
+  async findOne(
     @Param('id', ParseIntPipe) id: number,
   ): Promise<GetCategoryDto | null> {
     throw400IfInvalid(() => zIdParam().parse(id));
@@ -114,7 +114,7 @@ export class CategoriesController {
   @ApiConsumes('multipart/form-data')
   @Patch(':id')
   @UseInterceptors(FileInterceptor('image'))
-  update(
+  async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateCategoryDto: UpdateCategoryDto,
     @UploadedFile()
@@ -136,7 +136,7 @@ export class CategoriesController {
     description: 'The following category was deleted.',
   })
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number): Promise<GetCategoryDto> {
+  async remove(@Param('id', ParseIntPipe) id: number): Promise<GetCategoryDto> {
     throw400IfInvalid(() => zIdParam().parse(id));
     return this.categoriesService.remove(id);
   }

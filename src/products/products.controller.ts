@@ -1,4 +1,3 @@
-import { zImagesValidator } from './../common/types/z-image.schema';
 import { ZodValidationPipe } from '@anatine/zod-nestjs';
 import {
   Body,
@@ -34,10 +33,10 @@ import { CreatedProductDto } from './dto/created-product.dto';
 import { GetProductDto } from './dto/get-product.dto';
 import { UpdateProductHighlightsDto } from './dto/update-product-highlights.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { UpdatedProductHighlightsDto } from './dto/updated-product-highlights.dto';
+import { UpdatedProductImagesDto } from './dto/updated-product-images.dto';
 import { ProductRelationsService } from './services/product-relations.service';
 import { ProductsService } from './services/products.service';
-import { UpdatedProductImagesDto } from './dto/updated-product-images.dto';
-import { UpdatedProductHighlightsDto } from './dto/updated-product-highlights.dto';
 
 @ApiTags('product')
 @Controller('products')

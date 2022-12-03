@@ -7,6 +7,7 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../common/services/prisma.service';
+import { BadRequestException } from '@nestjs/common';
 
 /**
  * Unit Tests for the Categories Controller layer.
@@ -140,6 +141,26 @@ describe('CategoriesController', () => {
       await controller.findPaged(1, 2);
       expect(serviceCreateSpy).toBeCalledTimes(1);
     });
+
+    it('should throw BadRequestException on invalid page number', async () => {
+      const serviceSpy = jest
+        .spyOn(service, 'findPaged')
+        .mockResolvedValue(result);
+      await expect(controller.findPaged(0, 1)).rejects.toThrow(
+        BadRequestException,
+      );
+      expect(serviceSpy).toBeCalledTimes(0);
+    });
+
+    it('should throw BadRequestException on invalid page size', async () => {
+      const serviceSpy = jest
+        .spyOn(service, 'findPaged')
+        .mockResolvedValue(result);
+      await expect(controller.findPaged(1, -1)).rejects.toThrow(
+        BadRequestException,
+      );
+      expect(serviceSpy).toBeCalledTimes(0);
+    });
   });
 
   describe('findOne', () => {
@@ -164,6 +185,16 @@ describe('CategoriesController', () => {
       await controller.findOne(3);
       expect(serviceCreateSpy).toBeCalledTimes(1);
     });
+
+    it('should throw BadRequestException on invalid id', async () => {
+      const serviceSpy = jest
+        .spyOn(service, 'findOne')
+        .mockResolvedValue(result);
+      await expect(controller.findOne(-10)).rejects.toThrow(
+        BadRequestException,
+      );
+      expect(serviceSpy).toBeCalledTimes(0);
+    });
   });
 
   describe('remove', () => {
@@ -187,6 +218,14 @@ describe('CategoriesController', () => {
         .mockResolvedValue(result);
       await controller.remove(3);
       expect(serviceCreateSpy).toBeCalledTimes(1);
+    });
+
+    it('should throw BadRequestException on invalid id', async () => {
+      const serviceSpy = jest
+        .spyOn(service, 'remove')
+        .mockResolvedValue(result);
+      await expect(controller.remove(-10)).rejects.toThrow(BadRequestException);
+      expect(serviceSpy).toBeCalledTimes(0);
     });
   });
 
@@ -216,6 +255,27 @@ describe('CategoriesController', () => {
         .mockResolvedValue(result);
       await controller.update(3, request);
       expect(serviceCreateSpy).toBeCalledTimes(1);
+    });
+
+    it('should throw BadRequestException on invalid id', async () => {
+      const serviceSpy = jest
+        .spyOn(service, 'update')
+        .mockResolvedValue(result);
+      await expect(controller.update(-10, request)).rejects.toThrow(
+        BadRequestException,
+      );
+      expect(serviceSpy).toBeCalledTimes(0);
+    });
+
+    it('should throw BadRequestException on invalid parent id', async () => {
+      request.parentId = -10;
+      const serviceSpy = jest
+        .spyOn(service, 'update')
+        .mockResolvedValue(result);
+      await expect(controller.update(10, request)).rejects.toThrow(
+        BadRequestException,
+      );
+      expect(serviceSpy).toBeCalledTimes(0);
     });
   });
 });
