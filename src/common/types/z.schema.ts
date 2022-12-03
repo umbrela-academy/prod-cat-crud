@@ -26,11 +26,14 @@ export const zId = (entity: EntityName, relation = '', optional = false) =>
     },
   );
 
-const numStringT = (schema: z.ZodString) =>
+const numStringT = (schema: z.ZodString, field = '') =>
   schema
     .transform((val) => parseInt(val))
-    .refine((val) => !isNaN(val), 'must be a number')
-    .refine((val) => val > 0, 'must be greater than 0');
+    .refine((val) => !isNaN(val), `${field} must be a number`)
+    .refine((val) => val > 0, `${field} must be greater than 0`);
+
+export const zIdRefined = (id: number | string, field: string) =>
+  numStringT(z.string().min(1), field).parse(id);
 
 export const zIdNumStr = (
   entity: EntityName,

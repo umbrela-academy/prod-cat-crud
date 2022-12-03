@@ -127,7 +127,7 @@ export class ProductsService {
     pageSize: number,
   ): Promise<GetProductDto[]> {
     const productsWithImage = await this.prismaService.product.findMany({
-      skip: pageNumber * pageSize,
+      skip: (pageNumber - 1) * pageSize,
       take: pageSize,
       ...includeHightsAndImages,
     });

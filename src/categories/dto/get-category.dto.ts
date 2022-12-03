@@ -3,6 +3,7 @@ import { createZodDto } from '@anatine/zod-nestjs';
 import { z } from 'zod';
 
 export const getCategoryDto = zCategoryCreateObj.extend({
+  id: z.number().min(1),
   image: z.string().url(),
 });
 

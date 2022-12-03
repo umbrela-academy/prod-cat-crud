@@ -87,7 +87,7 @@ export class CategoriesService {
     pageSize: number,
   ): Promise<GetCategoryDto[]> {
     const categoriesWithImage = await this.prismaService.category.findMany({
-      skip: pageNumber * pageSize,
+      skip: (pageNumber - 1) * pageSize,
       take: pageSize,
       ...includeImage,
     });
@@ -108,21 +108,19 @@ export class CategoriesService {
     id: number,
     updateCategoryDto: UpdateCategoryDto,
     imageFileDto?: UploadedFileModel,
-  ) {
-    const categoryExists = await this.exists(id);
-
-    if (!categoryExists) {
-      throw new NotFoundException(`Category with id: ${id} was not found`);
-    }
+  ): Promise<GetCategoryDto> {
+    await this.throwIfNotFound(id);
 
     const data = await this.buildUpdateData(updateCategoryDto, imageFileDto);
 
-    return this.prismaService.category.update({
-      where: {
-        id,
-      },
-      data,
-    });
+    return this.prismaService.category
+      .update({
+        where: {
+          id,
+        },
+        data,
+      })
+      .then((res) => ({ ...res, ...this.toUrl(res.image) }));
   }
 
   private async exists(id: number): Promise<boolean> {
@@ -152,10 +150,10 @@ export class CategoriesService {
       updateCategoryDto.parentId !== undefined &&
       updateCategoryDto.parentId !== null
     ) {
-      const newParentExists = await this.exists(updateCategoryDto.parentId);
+      const newParentExists = await this.exists(+updateCategoryDto.parentId);
       if (newParentExists) {
         data.parent = {
-          connect: { id: updateCategoryDto.parentId },
+          connect: { id: +updateCategoryDto.parentId },
         };
       }
     }
@@ -174,11 +172,21 @@ export class CategoriesService {
     return data;
   }
 
-  async remove(id: number) {
-    return this.prismaService.category.delete({
-      where: {
-        id,
-      },
-    });
+  async remove(id: number): Promise<GetCategoryDto> {
+    await this.throwIfNotFound(id);
+    return this.prismaService.category
+      .delete({
+        where: {
+          id,
+        },
+      })
+      .then((res) => ({ ...res, ...this.toUrl(res.image) }));
+  }
+
+  private async throwIfNotFound(id: number) {
+    const categoryExists = await this.exists(id);
+    if (!categoryExists) {
+      throw new NotFoundException(`Category with id: ${id} was not found`);
+    }
   }
 }

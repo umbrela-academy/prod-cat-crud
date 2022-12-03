@@ -7,7 +7,7 @@ export const throw400IfInvalid = (zValidator: () => void) => {
   } catch (e) {
     if (e instanceof ZodError) {
       throw new BadRequestException(
-        e.issues.map((issue) => issue.message).join('& '),
+        e.issues.map((issue) => issue.message).join(' & '),
       );
     }
   }

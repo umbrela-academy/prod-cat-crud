@@ -13,7 +13,7 @@ import {
   Response,
   UploadedFiles,
   UseInterceptors,
-  UsePipes,
+  UsePipes
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ApiConsumes, ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
@@ -23,8 +23,7 @@ import { ZImagesValidationPipe } from '../common/services/z-images.validator';
 import { zIdParam, zZeroIndexParam } from '../common/types/z.schema';
 import { throw400IfInvalid } from '../common/utils/validation-utils';
 import {
-  CreateHighlightDto,
-  CreateHightlightsDto,
+  CreateHightlightsDto
 } from './dto/create-highlight.dto';
 import { CreateProductDto } from './dto/create-product.dto';
 import { CreatedProductDto } from './dto/created-product.dto';
@@ -83,7 +82,7 @@ export class ProductsController {
   ): Promise<GetProductDto[]> {
     throw400IfInvalid(() => {
       z.object({
-        pageNumber: zZeroIndexParam('page number'),
+        pageNumber: zIdParam('page number'),
         pageSize: zIdParam('page size'),
       }).parse({
         pageNumber,

@@ -29,7 +29,7 @@ model Category {
 
   // to adhere to the naming in the spec, image field has no id suffix
   image         Int           @unique
-  categoryImage CategoryImage @relation(fields: [image], references: [id])
+  categoryImage CategoryImage @relation(fields: [image], references: [id], onDelete: Cascade)
 
   Product Product[]
 
@@ -78,7 +78,7 @@ model ProductImage {
   mimetype     String @db.VarChar(20)
 
   productId Int
-  Product   Product @relation(fields: [productId], references: [id])
+  Product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([productId], map: "ProductImage_productId_fkey")
 }
@@ -87,7 +87,7 @@ model Highlight {
   id          Int     @id @default(autoincrement())
   description String  @db.VarChar(2000)
   productId   Int
-  Product     Product @relation(fields: [productId], references: [id])
+  Product     Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([productId], map: "Highlight_productId_fkey")
 }

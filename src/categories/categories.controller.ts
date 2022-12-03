@@ -1,3 +1,4 @@
+import { zImageValidator } from './../common/types/z-image.schema';
 import { ZodValidationPipe } from '@anatine/zod-nestjs';
 import {
   Body,
@@ -9,18 +10,24 @@ import {
   ParseIntPipe,
   Patch,
   Post,
-  Response,
   UploadedFile,
   UseInterceptors,
   UsePipes,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiConsumes, ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
-import { Response as Res } from 'express';
+import {
+  ApiConsumes,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiProduces,
+  ApiTags,
+} from '@nestjs/swagger';
 import { z } from 'zod';
 import { ZImageValidationPipe } from '../common/services/z-image.validator';
 import { throw400IfInvalid } from '../common/utils/validation-utils';
-import { zIdParam, zZeroIndexParam } from './../common/types/z.schema';
+import { ZImageOptionalValidationPipe } from './../common/services/z-optional-image-validator';
+import { zIdParam, zIdRefined } from './../common/types/z.schema';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { CreatedCategoryDto } from './dto/created-category.dto';
@@ -28,6 +35,7 @@ import { GetCategoryDto } from './dto/get-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 
 @ApiTags('category')
+@ApiProduces('application/json')
 @Controller('categories')
 @UsePipes(ZodValidationPipe)
 export class CategoriesController {
@@ -48,23 +56,25 @@ export class CategoriesController {
       }),
     )
     image: Express.Multer.File,
-    @Response() response: Res,
-  ) {
-    const createdDto = await this.categoriesService.create(
-      createCategoryDto,
-      image,
-    );
-    return response
-      .set({ Location: '/' + createdDto.id })
-      .status(201)
-      .json(createdDto);
+  ): Promise<CreatedCategoryDto> {
+    return this.categoriesService.create(createCategoryDto, image);
   }
 
+  @ApiOkResponse({
+    type: GetCategoryDto,
+    description: 'The following categories were found.',
+    isArray: true,
+  })
   @Get()
   findAll(): Promise<GetCategoryDto[]> {
     return this.categoriesService.findAll();
   }
 
+  @ApiOkResponse({
+    type: GetCategoryDto,
+    isArray: true,
+    description: 'The following categories were found.',
+  })
   @Get('/paged/:pageNumber/:pageSize')
   findPaged(
     @Param('pageNumber', ParseIntPipe) pageNumber: number,
@@ -72,7 +82,7 @@ export class CategoriesController {
   ): Promise<GetCategoryDto[]> {
     throw400IfInvalid(() => {
       z.object({
-        pageNumber: zZeroIndexParam('page number'),
+        pageNumber: zIdParam('page number'),
         pageSize: zIdParam('page size'),
       }).parse({
         pageNumber,
@@ -82,6 +92,10 @@ export class CategoriesController {
     return this.categoriesService.findPaged(pageNumber, pageSize);
   }
 
+  @ApiOkResponse({
+    type: GetCategoryDto,
+    description: 'The following category was found. (Empty if none found)',
+  })
   @Get(':id')
   findOne(
     @Param('id', ParseIntPipe) id: number,
@@ -90,25 +104,40 @@ export class CategoriesController {
     return this.categoriesService.findOne(id);
   }
 
+  @ApiOkResponse({
+    type: GetCategoryDto,
+    description: 'The following category was updated.',
+  })
+  @ApiOperation({
+    description: `Updates the provided attributes of the category.
+      If image is provided, it replaces the previous one.`,
+  })
   @ApiConsumes('multipart/form-data')
   @Patch(':id')
   @UseInterceptors(FileInterceptor('image'))
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateCategoryDto: UpdateCategoryDto,
-    @UploadedFile(
-      new ParseFilePipe({
-        validators: [new ZImageValidationPipe()],
-      }),
-    )
+    @UploadedFile()
     image?: Express.Multer.File,
-  ) {
+  ): Promise<GetCategoryDto> {
     throw400IfInvalid(() => zIdParam().parse(id));
+    const pid = updateCategoryDto.parentId;
+    if (pid !== undefined) {
+      throw400IfInvalid(() => zIdRefined(pid, 'parentId'));
+    }
+    if (image !== undefined) {
+      throw400IfInvalid(() => zImageValidator.parse(image));
+    }
     return this.categoriesService.update(id, updateCategoryDto, image);
   }
 
+  @ApiOkResponse({
+    type: GetCategoryDto,
+    description: 'The following category was deleted.',
+  })
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
+  remove(@Param('id', ParseIntPipe) id: number): Promise<GetCategoryDto> {
     throw400IfInvalid(() => zIdParam().parse(id));
     return this.categoriesService.remove(id);
   }
