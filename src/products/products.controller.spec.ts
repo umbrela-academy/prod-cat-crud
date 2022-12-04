@@ -1,5 +1,3 @@
-import { GetProductDto } from './dto/get-product.dto';
-import { highlight } from './../common/types/z.schema';
 import { BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';

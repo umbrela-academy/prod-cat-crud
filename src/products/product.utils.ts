@@ -2,7 +2,11 @@ import { Highlight, Product, ProductImage } from '@prisma/client';
 
 export const includeHightsAndImages = {
   include: {
-    images: true,
+    images: {
+      select: {
+        id: true,
+      },
+    },
     highlights: {
       select: {
         id: true,
@@ -13,7 +17,7 @@ export const includeHightsAndImages = {
 };
 
 export type ProductWithHighlightsAndImages = Product & {
-  images: ProductImage[];
+  images: Pick<ProductImage, 'id'>[];
   highlights: Omit<Highlight, 'productId'>[];
 };
 

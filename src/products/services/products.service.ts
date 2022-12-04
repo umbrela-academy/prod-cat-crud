@@ -27,46 +27,51 @@ export class ProductsService {
 
     const images = this.productCommonsService.getImagesPayload(imageFileDtos);
 
-    return this.prismaService.product
-      .create({
-        data: {
-          name: createProductDto.name,
-          ...parentConnector,
-          ...categoryConnector,
-          status: createProductDto.status,
-          images,
-          highlights: {
-            create: { description: createProductDto.highlight },
-          },
-          description: createProductDto.description,
+    const res = await this.prismaService.product.create({
+      data: {
+        name: createProductDto.name,
+        ...parentConnector,
+        ...categoryConnector,
+        status: createProductDto.status,
+        images,
+        highlights: {
+          create: { description: createProductDto.highlight },
         },
-        select: {
-          id: true,
-          images: true,
-          highlights: {
-            select: {
-              id: true,
-              description: true,
-            },
+        description: createProductDto.description,
+      },
+      select: {
+        id: true,
+        images: {
+          select: {
+            id: true,
           },
         },
-      })
-      .then(({ id, images, highlights }) => ({
+        highlights: {
+          select: {
+            id: true,
+            description: true,
+          },
+        },
+      },
+    });
+
+    return {
+      id: res.id,
+      highlights: res.highlights.map(({ id, description }) => ({
         id,
-        highlights: highlights.map(({ id, description }) => ({
-          id,
-          description,
-        })),
-        images: images.map((image) =>
-          this.productCommonsService.toUrl(image.id),
-        ),
-      }));
+        description,
+      })),
+      images: res.images.map((image) =>
+        this.productCommonsService.toUrl(image.id),
+      ),
+    };
   }
 
   private async getParentConnector(id?: number) {
     const parent = id
       ? await this.prismaService.product.findUnique({
           where: { id: +id },
+          select: { id: true },
         })
       : null;
 
@@ -89,6 +94,7 @@ export class ProductsService {
     const category = id
       ? await this.prismaService.category.findUnique({
           where: { id: +id },
+          select: { id: true },
         })
       : null;
 
@@ -143,15 +149,14 @@ export class ProductsService {
 
     const data = await this.buildUpdateData(updateProductDto);
 
-    return this.prismaService.product
-      .update({
-        where: {
-          id,
-        },
-        data,
-        ...includeHightsAndImages,
-      })
-      .then((res) => this.productCommonsService.toDto(res));
+    const res = await this.prismaService.product.update({
+      where: {
+        id,
+      },
+      data,
+      ...includeHightsAndImages,
+    });
+    return this.productCommonsService.toDto(res);
   }
 
   private async buildUpdateData(updateProductDto: UpdateProductDto) {
@@ -165,16 +170,20 @@ export class ProductsService {
       data.status = updateProductDto.status;
     }
 
-    data.category = (
-      await this.getCategoryConnector(updateProductDto.categoryId)
-    ).category;
+    if (updateProductDto.categoryId) {
+      data.category = (
+        await this.getCategoryConnector(updateProductDto.categoryId)
+      ).category;
+    }
 
-    const parentConnector = await this.getParentConnector(
-      updateProductDto.parentId,
-    );
+    if (updateProductDto.parentId) {
+      const parentConnector = await this.getParentConnector(
+        updateProductDto.parentId,
+      );
 
-    if (parentConnector.parent) {
-      data.parent = parentConnector.parent;
+      if (parentConnector.parent) {
+        data.parent = parentConnector.parent;
+      }
     }
 
     return data;
@@ -182,20 +191,16 @@ export class ProductsService {
 
   async remove(id: number): Promise<GetProductDto> {
     await this.throwIfNotFound(id);
-    return this.prismaService.product
-      .delete({
-        where: {
-          id,
-        },
-        include: {
-          highlights: true,
-          images: true,
-        },
-      })
-      .then((res) => this.productCommonsService.toDto(res));
+    const res = await this.prismaService.product.delete({
+      where: {
+        id,
+      },
+      ...includeHightsAndImages,
+    });
+    return this.productCommonsService.toDto(res);
   }
 
-  private async throwIfNotFound(id: number) {
+  async throwIfNotFound(id: number) {
     const productExists = await this.productCommonsService.exists(id);
     if (!productExists) {
       throw new NotFoundException(`Product with id: ${id} was not found`);

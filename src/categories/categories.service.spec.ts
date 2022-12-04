@@ -59,7 +59,7 @@ describe('CategoriesService', () => {
         .mockReturnValueOnce(prismaLayerResponse);
     });
 
-    it('should create product return id and image url', async () => {
+    it('should return id and image url', async () => {
       expect(await service.create(request, mockFile)).toStrictEqual(result);
     });
 
