@@ -19,6 +19,7 @@ import {
   ApiConsumes,
   ApiCreatedResponse,
   ApiOkResponse,
+  ApiOperation,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -170,6 +171,10 @@ export class ProductsController {
     return this.productRelationsService.addHighlights(id, highlights);
   }
 
+  @ApiOperation({
+    description:
+      'Updates or removes only those highlights which already belong to the given product',
+  })
   @ApiResponse({
     description: 'The product highlights have been updated.',
     type: UpdatedProductHighlightsDto,

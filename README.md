@@ -4,61 +4,71 @@
 
 A basic CRUD server with nest, prisma, mysql, zod, docker, multer and jest.
 
-<p align="center">
-  <a href="#" target="blank"><img src="docs/ERD.svg" width="800" alt="ER Diagram of the domain" /></a>
-<embed src="docs/ERD.svg" />
-</p>
+CRUD endpoints are available at /api. OpenAPI document can be downloaded from /api-json. By default this should be located at
+
+http://localhost:3333/api
+
+## Docker Image
+
+To use the dockerized setup, please run:
+
+```
+docker-compose up
+```
+
+Please make sure port 3333 and 3306 are not currently being used. Alternatively, please adjust the PORT and DB_PORT configs in .env file.
+(Sample config for .env is given in .env.sample.)
+
+### Unit Tests
+
+The test report is generated using `jest-html-reporter` and is located in project root at `test-report.html`. Test coverage report is located in `/coverage/lcov-report/index.html`.
+
+- The repo contains strictly unit tests only as per the task. Integration tests and e2e tests could be added for deeper coverage.
 
 ## Installation
 
 ```bash
-$ pnpm install
+$ npm install
 ```
 
 ## Running the app
 
 ```bash
 # development
-$ pnpm run start
+$ npm run start
 
 # watch mode
-$ pnpm run start:dev
+$ npm run start:dev
 
 # production mode
-$ pnpm run start:prod
+$ npm run start:prod
 ```
 
-## Develop
+## For development
+
+`dev-db.compose.yml` provides lax settings so that you can use root access for prisma shadow mysql db to keep track of schema drift.
 
 ```bash
 $ docker compose -f dev-db.compose.yml up -d
-$ pnpm i
-$ pnpm exec prisma db push
+$ npm i
+$ npm exec prisma db push
 ```
 
 ## Test
 
 ```bash
 # unit tests
-$ pnpm run test
+$ npm run test
 
 # e2e tests
-$ pnpm run test:e2e
+$ npm run test:e2e
 
 # test coverage
-$ pnpm run test:cov
+$ npm run test:cov
 ```
 
-## Support
+## Looking forward to hearing from you!
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](LICENSE).
+- Author - [Risav Karna](https://github.com/risavkarna)
+- Website - [risav.dev](https://risav.dev/)
+- Twitter (& most social media) - [@risavkarna](https://twitter.com/risavkarna)

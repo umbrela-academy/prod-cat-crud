@@ -15,7 +15,7 @@ const updateProductHighlights = extendApi(
   }),
   {
     description:
-      'Updates or removes only those highlights which already belong to the given product',
+      'edit array should contain objects with id and updated description. remove array should contain ids only. Note: This updates or removes only those highlights which already belong to the given product',
   },
 );
 
