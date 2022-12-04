@@ -31,25 +31,26 @@ export class ProductRelationsService {
 
     const givenHighlightIds = givenIdsForEdit.concat(highlightUpdates.remove);
 
-    const foundHighlightIds = await this.prismaService.product
-      .findUnique({
-        where: {
-          id,
-        },
-        include: {
-          highlights: {
-            where: {
-              id: {
-                in: givenHighlightIds,
-              },
-            },
-            select: {
-              id: true,
+    const res = await this.prismaService.product.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        highlights: {
+          where: {
+            id: {
+              in: givenHighlightIds,
             },
           },
+          select: {
+            id: true,
+          },
         },
-      })
-      .then((res) => res?.highlights.map((highlight) => highlight.id));
+        id: true,
+      },
+    });
+
+    const foundHighlightIds = res?.highlights.map((highlight) => highlight.id);
 
     if (!foundHighlightIds || foundHighlightIds.length === 0) {
       throw new NotFoundException(
@@ -74,13 +75,16 @@ export class ProductRelationsService {
           data: {
             description: getEditDescription(uid),
           },
+          select: {
+            id: true,
+          },
         }),
       );
       await this.prismaService.$transaction(updateBatch);
     }
 
     if (removableIds.length > 0) {
-      await this.prismaService.highlight.deleteMany({
+      const res = await this.prismaService.highlight.deleteMany({
         where: {
           id: { in: removableIds },
         },
@@ -108,19 +112,23 @@ export class ProductRelationsService {
       description: highlight.description,
     }));
 
-    await this.prismaService.highlight.createMany({
+    const res = await this.prismaService.highlight.createMany({
       data: highlightsPayload,
     });
 
-    return this.prismaService.highlight.findMany({
-      where: {
-        productId: id,
-      },
-      select: {
-        id: true,
-        description: true,
-      },
-    });
+    if (res.count > 0) {
+      return this.prismaService.highlight.findMany({
+        where: {
+          productId: id,
+        },
+        select: {
+          id: true,
+          description: true,
+        },
+      });
+    } else {
+      return [];
+    }
   }
 
   async addImages(
@@ -131,31 +139,30 @@ export class ProductRelationsService {
 
     const images = this.productCommonsService.getImagesPayload(imageFileDtos);
 
-    return this.prismaService.product
-      .update({
-        where: {
-          id,
-        },
-        data: {
-          images,
-        },
-        include: {
-          images: {
-            select: {
-              id: true,
-            },
+    const res = await this.prismaService.product.update({
+      where: {
+        id,
+      },
+      data: {
+        images,
+      },
+      select: {
+        images: {
+          select: {
+            id: true,
           },
         },
-      })
-      .then((res) =>
-        res.images.map((img) => ({
-          id: img.id,
-          url: this.productCommonsService.toUrl(img.id),
-        })),
-      );
+        id: true,
+      },
+    });
+
+    return res.images.map((img) => ({
+      id: img.id,
+      url: this.productCommonsService.toUrl(img.id),
+    }));
   }
 
-  private async throw404IfNonExistent(id: number) {
+  async throw404IfNonExistent(id: number) {
     const productExists = await this.productCommonsService.exists(id);
     if (!productExists) {
       throw new NotFoundException(`Product with id: ${id} does not exist.`);
@@ -188,7 +195,7 @@ export class ProductRelationsService {
       );
     }
 
-    await this.prismaService.product.update({
+    const updated = await this.prismaService.product.update({
       where: {
         id,
       },
@@ -201,7 +208,7 @@ export class ProductRelationsService {
       },
     });
 
-    return productWithHighlight.highlights[0].description;
+    return updated ? productWithHighlight.highlights[0].description : '';
   }
 
   async removeImage(id: number, imageId: number): Promise<string> {
@@ -209,10 +216,12 @@ export class ProductRelationsService {
       where: {
         id,
       },
-      include: {
+      select: {
         images: {
           where: { id: imageId },
+          select: { id: true },
         },
+        id: true,
       },
     });
 
@@ -229,7 +238,7 @@ export class ProductRelationsService {
       );
     }
 
-    await this.prismaService.product.update({
+    const updated = await this.prismaService.product.update({
       where: {
         id,
       },
@@ -240,8 +249,13 @@ export class ProductRelationsService {
           },
         },
       },
+      select: {
+        id: true,
+      },
     });
 
-    return this.productCommonsService.toUrl(productWithImage.images[0].id);
+    return updated
+      ? this.productCommonsService.toUrl(productWithImage.images[0].id)
+      : '';
   }
 }
