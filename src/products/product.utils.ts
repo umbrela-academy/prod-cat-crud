@@ -18,7 +18,7 @@ export type ProductWithHighlightsAndImages = Product & {
 };
 
 export const toImageUrl = (url?: string) => (id: number) =>
-  `${url}products/${id}`;
+  url ? `${url}products/${id}` : `/products/${id}`;
 
 export const toGetProductDto =
   (url?: string) =>

@@ -11,7 +11,7 @@ export type CategoryWithImage = Category & {
 };
 
 export const toImageUrl = (url?: string) => (id: number) => ({
-  image: `${url}categories/${id}`,
+  image: url ? `${url}categories/${id}` : `/categories/${id}`,
 });
 
 export const toGetCategoryDto =

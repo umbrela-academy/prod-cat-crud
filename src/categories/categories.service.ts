@@ -30,26 +30,29 @@ export class CategoriesService {
     imageFileDto: UploadedFileModel,
   ): Promise<CreatedCategoryDto> {
     const parentConnector = await this.getParentConnector(createCategoryDto);
-    return this.prismaService.category
-      .create({
-        data: {
-          name: createCategoryDto.name,
-          ...parentConnector,
-          status: createCategoryDto.status,
-          categoryImage: {
-            create: {
-              destination: this.defaultDestination,
-              originalname: imageFileDto.originalname,
-              filename: imageFileDto.filename,
-              mimetype: imageFileDto.mimetype,
-            },
+    const response = await this.prismaService.category.create({
+      data: {
+        name: createCategoryDto.name,
+        ...parentConnector,
+        status: createCategoryDto.status,
+        categoryImage: {
+          create: {
+            destination: this.defaultDestination,
+            originalname: imageFileDto.originalname,
+            filename: imageFileDto.filename,
+            mimetype: imageFileDto.mimetype,
           },
         },
-        select: {
-          id: true,
-        },
-      })
-      .then((res) => ({ ...res, ...this.toUrl(res.id) }));
+      },
+      select: {
+        id: true,
+        categoryImage: true,
+      },
+    });
+    return {
+      id: response.id,
+      ...this.toUrl(response.categoryImage.id),
+    };
   }
 
   private async getParentConnector(createCategoryDto: CreateCategoryDto) {
@@ -113,14 +116,13 @@ export class CategoriesService {
 
     const data = await this.buildUpdateData(updateCategoryDto, imageFileDto);
 
-    return this.prismaService.category
-      .update({
-        where: {
-          id,
-        },
-        data,
-      })
-      .then((res) => ({ ...res, ...this.toUrl(res.image) }));
+    const res = await this.prismaService.category.update({
+      where: {
+        id,
+      },
+      data,
+    });
+    return { ...res, ...this.toUrl(res.image) };
   }
 
   private async exists(id: number): Promise<boolean> {
@@ -174,16 +176,16 @@ export class CategoriesService {
 
   async remove(id: number): Promise<GetCategoryDto> {
     await this.throwIfNotFound(id);
-    return this.prismaService.category
-      .delete({
-        where: {
-          id,
-        },
-      })
-      .then((res) => ({ ...res, ...this.toUrl(res.image) }));
+    const res = await this.prismaService.category.delete({
+      where: {
+        id,
+      },
+    });
+
+    return { ...res, ...this.toUrl(res.image) };
   }
 
-  private async throwIfNotFound(id: number) {
+  async throwIfNotFound(id: number) {
     const categoryExists = await this.exists(id);
     if (!categoryExists) {
       throw new NotFoundException(`Category with id: ${id} was not found`);
