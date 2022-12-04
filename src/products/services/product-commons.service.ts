@@ -36,6 +36,9 @@ export class ProductCommonsService {
       where: {
         id,
       },
+      select: {
+        id: true,
+      },
     };
     const found = isProduct
       ? await this.prismaService.product.findUnique(whereQuery)

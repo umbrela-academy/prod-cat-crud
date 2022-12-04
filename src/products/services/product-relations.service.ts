@@ -1,5 +1,3 @@
-import { Highlight } from '@prisma/client';
-import { product } from './../../common/types/z.schema';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { UpdateProductHighlightsDto } from './../dto/update-product-highlights.dto';
 import { ProductCommonsService } from './product-commons.service';
