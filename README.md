@@ -19,11 +19,17 @@ docker-compose up
 Please make sure port 3333 and 3306 are not currently being used. Alternatively, please adjust the PORT and DB_PORT configs in .env file.
 (Sample config for .env is given in .env.sample.)
 
-### Unit Tests
+## Unit Tests
 
 The test report is generated using `jest-html-reporter` and is located in project root at `test-report.html`. Test coverage report is located in `/coverage/lcov-report/index.html`.
 
-- The repo contains strictly unit tests only as per the task. Integration tests and e2e tests could be added for deeper coverage.
+- The repo contains strictly unit tests only as per the task.Integration tests and e2e tests could be added for deeper coverage.
+
+## Future Improvements
+
+- A cron-job or a scheduled service could check and prune images on disk that are not being used by any product/category. I have not inlined disk access e.g. with `fs.unlink` within the API call-response cycle to save avoidable disk write requests and keeping the endpoint response latency low.
+
+- Config options could also be validated using zod, using the same pattern, when config becomes complex or ambiguous.
 
 ## Installation
 
@@ -71,4 +77,5 @@ $ npm run test:cov
 
 - Author - [Risav Karna](https://github.com/risavkarna)
 - Website - [risav.dev](https://risav.dev/)
+- Email - [prodcatapi@risav.dev](mailto:prodcatapi@risav.dev)
 - Twitter (& most social media) - [@risavkarna](https://twitter.com/risavkarna)
