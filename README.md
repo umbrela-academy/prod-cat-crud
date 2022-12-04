@@ -4,7 +4,7 @@
 
 A basic CRUD server with nest, prisma, mysql, zod, docker, multer and jest.
 
-CRUD endpoints are available at /api. OpenAPI document can be downloaded from /api-json. By default this should be located at
+CRUD endpoints are available at /api. OpenAPI document can be downloaded from /api-json. By default swagger-ui should be located at
 
 http://localhost:3333/api
 
@@ -23,7 +23,7 @@ Please make sure port 3333 and 3306 are not currently being used. Alternatively,
 
 The test report is generated using `jest-html-reporter` and is located in project root at `test-report.html`. Test coverage report is located in `/coverage/lcov-report/index.html`.
 
-- The repo contains strictly unit tests only as per the task.Integration tests and e2e tests could be added for deeper coverage.
+- The repo contains strictly unit tests only as per the task. Integration tests and e2e tests could be added for deeper coverage.
 
 ## Future Improvements
 
