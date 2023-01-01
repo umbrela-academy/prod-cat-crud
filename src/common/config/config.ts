@@ -5,7 +5,7 @@ export default (): Config => {
 
   const config: Config = {
     nest: {
-      port: 3333,
+      port: parseInt(process.env.PORT ?? '3333'),
     },
     swagger: {
       enabled: isApiDocExposed !== undefined ? isApiDocExposed : true,
