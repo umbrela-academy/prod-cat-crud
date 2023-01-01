@@ -2,7 +2,6 @@ version: '3.8'
 services:
   mysql:
     image: mysql:8.0.31
-    command: --default-authentication-plugin=mysql_native_password
     container_name: dev-db
     restart: always
     ports:
@@ -11,6 +10,12 @@ services:
       - .env
     volumes:
       - mysql:/var/lib/mysql
+    healthcheck:
+      test: mysql ${MYSQL_DATABASE} --user=${MYSQL_USER} --password='${MYSQL_PASSWORD}' --silent --execute "SELECT 1;"
+      interval: 30s
+      timeout: 60s
+      retries: 5
+
 
 volumes:
   mysql:

@@ -1,11 +1,11 @@
-FROM node:18-alpine AS base
+FROM node:18 AS base
 
 FROM base AS dependencies
 WORKDIR /app
 COPY package*.json ./
 COPY .env ./
 COPY prisma ./prisma/
-RUN npm install 
+RUN npm install
 
 
 FROM base AS build
