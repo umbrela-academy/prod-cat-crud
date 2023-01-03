@@ -21,6 +21,7 @@
             if (kc.idTokenParsed.picture) {
                 document.getElementById('picture').src = kc.idTokenParsed.picture;
             }
+            console.log("idTokenParsed", kc.idTokenParsed);
             document.getElementById('user').style.display = 'block';
         }
 
@@ -36,7 +37,7 @@
             req.send();
         }
 
-        var kc = new Keycloak({ url: 'http://localhost:8181', realm: 'prodcat', clientId: 'testui', clientSecret: 'gV1bmhctgqDZi9IjOs3M9lB5ICp497Rk' });
+        var kc = new Keycloak({ url: 'http://localhost:8181', realm: 'prodcat', clientId: 'testui' });
         window.onload = function () {
             kc.init({ 'messageReceiveTimeout': 100000 }).then(function () {
                 if (kc.authenticated) {

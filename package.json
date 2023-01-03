@@ -26,6 +26,7 @@
     "@anatine/zod-nestjs": "^1.8.0",
     "@anatine/zod-openapi": "^1.10.0",
     "@golevelup/ts-jest": "^0.3.4",
+    "@keycloak/keycloak-admin-client": "^20.0.2",
     "@nestjs/common": "^9.0.0",
     "@nestjs/config": "^2.2.0",
     "@nestjs/core": "^9.0.0",
