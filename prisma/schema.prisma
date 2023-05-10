@@ -76,6 +76,7 @@ model ProductImage {
   originalname String @db.VarChar(50)
   filename     String @db.VarChar(100)
   mimetype     String @db.VarChar(20)
+  url          String? @db.VarChar(100)
 
   productId Int
   Product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
