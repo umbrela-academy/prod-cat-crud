@@ -145,7 +145,7 @@ describe('CategoriesService', () => {
 
     it('should throw NotFoundException and not delegate to service layer if category id not found', async () => {
       const serviceCreateSpy = jest.spyOn(prismaService.category, 'delete');
-      await expect(service.remove(1)).rejects.toThrow(NotFoundException);
+      await expect(service.remove(100)).rejects.toThrow(NotFoundException);
       expect(serviceCreateSpy).toBeCalledTimes(0);
     });
   });
@@ -176,7 +176,7 @@ describe('CategoriesService', () => {
 
     it('should throw NotFoundException and not delegate to service layer if category id not found', async () => {
       const serviceCreateSpy = jest.spyOn(prismaService.category, 'update');
-      await expect(service.update(1, request)).rejects.toThrow(
+      await expect(service.update(1000, request)).rejects.toThrow(
         NotFoundException,
       );
       expect(serviceCreateSpy).toBeCalledTimes(0);

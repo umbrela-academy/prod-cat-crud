@@ -15,12 +15,29 @@ export const csvProdCreatedResponse: CreatedProductDto[] = [
     highlights: [
       {
         id: 1,
-        description: 'prod highlight',
+        description: 'Highlight of Product 1',
       },
     ],
-    images: [
-      'http://localhost:3333/api/images/products/1',
-      'http://localhost:3333/api/images/products/2',
+    images: ['http://localhost:3333/api/images/products/1'],
+  },
+  {
+    id: 2,
+    highlights: [
+      {
+        id: 2,
+        description: 'Highlight of Product 2',
+      },
     ],
+    images: ['http://localhost:3333/api/images/products/2'],
+  },
+  {
+    id: 3,
+    highlights: [
+      {
+        id: 3,
+        description: 'Highlight of Product 3',
+      },
+    ],
+    images: ['http://localhost:3333/api/images/products/3'],
   },
 ];

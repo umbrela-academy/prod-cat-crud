@@ -6,6 +6,7 @@ import { CategoriesModule } from './categories/categories.module';
 import config from './common/config/config';
 import { ImagesModule } from './images/images.module';
 import { ProductsModule } from './products/products.module';
+import { CsvModule } from './csv/csv.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { ProductsModule } from './products/products.module';
     ProductsModule,
     CategoriesModule,
     ImagesModule,
+    CsvModule,
   ],
 })
 export class AppModule {}

@@ -1,4 +1,4 @@
-name,description,highlight,status,categoryId,images
-Product 1,Description of Product 1,Highlight of Product 1,PENDING,3,"[""https://i.imgur.com/2ABGp0Q.jpeg"", ""https://i.imgur.com/5z0fCFL_d.webp?maxwidth=520&shape=thumb&fidelity=high""]"
-Product 2,Description of Product 2,Highlight of Product 2,PENDING,1,"[""https://i.imgur.com/5iDO8tr_d.webp?maxwidth=520&shape=thumb&fidelity=high"", ""https://images.unsplash.com/photo-1683115763606-43dd57a47712?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxlZGl0b3JpYWwtZmVlZHwzfHx8ZW58MHx8fHw%3D&auto=format&fit=crop&w=500&q=60"", ""https://i.imgur.com/FKpY1i7_d.webp?maxwidth=520&shape=thumb&fidelity=high"", ""https://images.unsplash.com/photo-1683112009295-82f70d5022e6?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxlZGl0b3JpYWwtZmVlZHwyNHx8fGVufDB8fHx8&auto=format&fit=crop&w=500&q=60""]"
-Product 3,Description of Product 3,Highlight of Product 3,ACTIVE,3,"[""https://images.unsplash.com/photo-1683115763606-43dd57a47712?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxlZGl0b3JpYWwtZmVlZHwzfHx8ZW58MHx8fHw%3D&auto=format&fit=crop&w=500&q=60""]"
+name,description,highlight,status,categoryId,parentId,images
+Product 1,Description of Product 1,Highlight of Product 1,ACTIVE,1,1,['https://i.imgur.com/2ABGp0Q.jpeg']
+Product 2,Description of Product 2,Highlight of Product 2,ACTIVE,2,2,['https://i.imgur.com/5iDO8tr_d.webp?maxwidth=520&shape=thumb&fidelity=high']
+Product 3,Description of Product 3,Highlight of Product 3,ACTIVE,3,3,['https://i.imgur.com/2cVi2cU_d.webp?maxwidth=520&shape=thumb&fidelity=high']

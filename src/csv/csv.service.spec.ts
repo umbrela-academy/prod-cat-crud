@@ -1,7 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { PrismaService } from 'src/common/services/prisma.service';
 import { CsvCommonService } from './csv-commons.service';
 import { CsvService } from './csv.service';
+import {
+  csvProdCreateRequest,
+  csvProdCreatedResponse,
+  mockCSV,
+} from './mocks/csv-req-res.mock';
+import { PrismaService } from './../../src/common/services/prisma.service';
 
 describe('CsvService', () => {
   let service: CsvService;
@@ -24,18 +29,27 @@ describe('CsvService', () => {
 
   //TODO
   describe('create', () => {
-    it('should create products and return created product DTOs');
+    const request = mockCSV;
+    const fileBuffer = request.buffer.toString('base64');
+    const result = csvProdCreatedResponse;
+
+    beforeEach(async () => {
+      const createdProductsDto = await service.create(fileBuffer);
+      console.log('Returned Value:', createdProductsDto);
+      expect(createdProductsDto).toStrictEqual(result);
+    });
   });
+  // it('should throw and error if required headers is missing');
 
-  it('should throw and error if required headers is missing');
+  // it('should throw and error if the values do not match schema');
 
-  it('should throw and error if the values do not match schema');
+  // it('should throw an error if a categoryId or parentId does not exist');
 
-  it('should throw an error if a categoryId or parentId does not exist');
+  // it('should throw an error if status is not one of status enums');
 
-  it('should throw an error ifimage column is not an array');
+  // it('should throw an error ifimage column is not an array');
 
-  it('should throw and error it an url does not send image buffer as response');
+  // it('should throw and error it an url does not send image buffer as response');
 
-  it('should connect id of Product Image if an url exists in db');
+  // it('should connect id of Product Image if an url exists in db');
 });

@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, StreamableFile } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { CategoryImage, ProductImage } from '@prisma/client';
 import type { Response } from 'express';
-import { createReadStream } from 'fs';
+import { createReadStream, existsSync } from 'fs';
 import { join } from 'path';
 import { PrismaService } from '../common/services/prisma.service';
 
@@ -40,8 +40,12 @@ export class ImagesService {
     if (image === null) {
       throw new NotFoundException(`No image found with the id: ${id} `);
     }
+    const filePath = join(image.destination, image.filename);
+    if (!existsSync(filePath)) {
+      throw new NotFoundException(`Image file not found for id: ${id}`);
+    }
 
-    const imageFile = createReadStream(join(image.destination, image.filename));
+    const imageFile = createReadStream(filePath);
 
     res.set({
       'Content-Type': image.mimetype,
