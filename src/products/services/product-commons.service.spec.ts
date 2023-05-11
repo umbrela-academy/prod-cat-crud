@@ -55,11 +55,11 @@ describe('ProductCommonsService', () => {
 
     it('should return false when product not found', () => {
       prismaService.product.findUnique = jest.fn().mockReturnValueOnce(null);
-      expect(commonsService.exists(1, true)).resolves.toStrictEqual(false);
+      expect(commonsService.exists(1)).resolves.toStrictEqual(false);
     });
 
     it('should return false when category not found', () => {
-      prismaService.product.findUnique = jest.fn().mockReturnValueOnce(null);
+      prismaService.category.findUnique = jest.fn().mockReturnValueOnce(null);
       expect(commonsService.exists(1, false)).resolves.toStrictEqual(false);
     });
   });

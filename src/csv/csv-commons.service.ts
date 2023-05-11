@@ -5,8 +5,9 @@ import { createWriteStream } from 'fs';
 import { join } from 'path';
 import { lastValueFrom } from 'rxjs';
 import * as sharp from 'sharp';
+import { toImageUrl } from '../categories/category.utils';
 import { DownloadedFileModel } from 'src/common/types/downloaded-file.model';
-import { toGetProductDto, toImageUrl } from 'src/products/product.utils';
+import { toGetProductDto } from '../products/product.utils';
 
 @Injectable()
 export class CsvCommonService {
@@ -50,7 +51,7 @@ export class CsvCommonService {
     }
   }
 
-  async getImageMetadata(imageBuffer: Buffer) {
+  private async getImageMetadata(imageBuffer: Buffer) {
     try {
       const metadata = await sharp(imageBuffer).metadata();
       return metadata;
@@ -60,7 +61,7 @@ export class CsvCommonService {
       );
     }
   }
-  async saveImage(imageBuffer: Buffer) {
+  private async saveImage(imageBuffer: Buffer) {
     try {
       const filename = `${Date.now()}`;
       const path = join(this.defaultDestination, filename);

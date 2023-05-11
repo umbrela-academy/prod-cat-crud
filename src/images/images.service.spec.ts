@@ -34,7 +34,7 @@ describe('ImagesService', () => {
     id: 1,
     destination: 'default',
     originalname: '34563.png',
-    filename: 'd1b96c16a967c6fdc7f7d440c9310531',
+    filename: '0a1ea2db76b6b8060af4eef8cc1baa17',
     mimetype: 'image/png',
     category: 1,
   };
@@ -42,13 +42,13 @@ describe('ImagesService', () => {
   describe('findOneForCategory', () => {
     const response = mockResponseObject();
 
-    it('should return image file', () => {
+    it('should return image file', async () => {
       prismaService.categoryImage.findUnique = jest
         .fn()
         .mockReturnValueOnce(mockImage);
-      expect(service.findOneForCategory(1, response)).resolves.toBeInstanceOf(
-        StreamableFile,
-      );
+      await expect(
+        service.findOneForCategory(1, response),
+      ).resolves.toBeInstanceOf(StreamableFile);
     });
 
     it('should delegate to prisma layer once', async () => {

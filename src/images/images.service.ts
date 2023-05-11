@@ -41,6 +41,7 @@ export class ImagesService {
       throw new NotFoundException(`No image found with the id: ${id} `);
     }
     const filePath = join(image.destination, image.filename);
+    console.log(filePath);
     if (!existsSync(filePath)) {
       throw new NotFoundException(`Image file not found for id: ${id}`);
     }

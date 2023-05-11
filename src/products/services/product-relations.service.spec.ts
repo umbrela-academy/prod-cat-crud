@@ -258,6 +258,10 @@ describe('ProductRelationsService', () => {
     });
 
     it('should throw NotFoundException when product is not found', async () => {
+      service.throw404IfNonExistent = jest.fn().mockImplementationOnce(() => {
+        throw new NotFoundException();
+      });
+
       await expect(service.addImages(1, mockFiles)).rejects.toThrow(
         NotFoundException,
       );
@@ -300,6 +304,10 @@ describe('ProductRelationsService', () => {
     });
 
     it('should throw NotFoundException when product is not found', async () => {
+      service.throw404IfNonExistent = jest.fn().mockReturnValueOnce(() => {
+        throw new NotFoundException();
+      });
+
       await expect(service.addHighlights(1, newHighlights)).rejects.toThrow(
         NotFoundException,
       );
