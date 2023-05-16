@@ -1,20 +1,12 @@
 import {
   Controller,
-  Get,
   Post,
-  Body,
   Patch,
-  Param,
-  Delete,
   UseInterceptors,
   UploadedFile,
   ParseFilePipe,
-  UploadedFiles,
-  UsePipes,
 } from '@nestjs/common';
 import { CsvService } from './csv.service';
-import { CreateCsvDto } from './dto/create-csv.dto';
-import { UpdateCsvDto } from './dto/update-csv.dto';
 import {
   ApiConsumes,
   ApiCreatedResponse,
@@ -22,14 +14,12 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ZCsvValidatorPipe } from 'src/common/services/z-csv.validator';
-import { ZodValidationPipe } from '@anatine/zod-nestjs';
-import { CreatedProductDto } from 'src/products/dto/created-product.dto';
-import { GetProductDto } from 'src/products/dto/get-product.dto';
+import { ZCsvValidatorPipe } from '../common/services/z-csv.validator';
+import { CreatedProductDto } from '../products/dto/created-product.dto';
+import { GetProductDto } from '../products/dto/get-product.dto';
 
 @ApiTags('csv')
 @Controller('csv')
-@UsePipes(ZodValidationPipe)
 export class CsvController {
   constructor(private readonly csvService: CsvService) {}
 

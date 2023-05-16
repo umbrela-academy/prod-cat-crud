@@ -1,9 +1,7 @@
-import { extendApi } from '@anatine/zod-openapi';
-import { zCsvCreateSchema } from './create-csv.dto';
-import { product, zName, zStatus, zString } from 'src/common/types/z.schema';
 import { createZodDto } from '@anatine/zod-nestjs';
 import { PartialType } from '@nestjs/swagger';
 import { z } from 'zod';
+import { zName, zStatus, zString } from '../../common/types/z.schema';
 
 export const zCsvUpdateSchema = z.object({
   id: z.number().min(1),

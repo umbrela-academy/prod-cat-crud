@@ -6,8 +6,10 @@ import { join } from 'path';
 import { lastValueFrom } from 'rxjs';
 import * as sharp from 'sharp';
 import { toImageUrl } from '../categories/category.utils';
-import { DownloadedFileModel } from 'src/common/types/downloaded-file.model';
+import { DownloadedFileModel } from '../common/types/downloaded-file.model';
 import { toGetProductDto } from '../products/product.utils';
+import { Readable } from 'stream';
+import * as papa from 'papaparse';
 
 @Injectable()
 export class CsvCommonService {
@@ -34,9 +36,10 @@ export class CsvCommonService {
       }
       const buffer = Buffer.from(res.data);
       const metadata = await this.getImageMetadata(buffer);
-      const filename = (await this.saveImage(buffer)).filename;
+      const filename =
+        (await this.saveImage(buffer)).filename + '.' + metadata.format;
       const originalname: string = res.headers['Content-Disposition']
-        ? res.headers['Content-Disposition']
+        ? res.headers['Content-Disposition'].split(';')[1].trim().split('=')[1]
         : filename;
 
       return {
@@ -47,13 +50,14 @@ export class CsvCommonService {
         url,
       };
     } catch (error) {
-      throw new BadRequestException(`Error downloading image from ${url}`);
+      throw new BadRequestException(error.message);
     }
   }
 
   private async getImageMetadata(imageBuffer: Buffer) {
     try {
       const metadata = await sharp(imageBuffer).metadata();
+
       return metadata;
     } catch (error) {
       throw new BadRequestException(
@@ -82,7 +86,23 @@ export class CsvCommonService {
         filename,
       };
     } catch (error) {
-      throw new Error('Error saving the image');
+      throw new BadRequestException(error.message);
     }
+  }
+
+  async parseCsv(fileBuffer: String) {
+    const buffer = Buffer.from(fileBuffer, 'base64');
+    const dataStream = Readable.from(buffer);
+
+    const records = await new Promise<any>((resolve, reject) => {
+      papa.parse(dataStream, {
+        header: true,
+        skipEmptyLines: true,
+        dynamicTyping: true,
+        complete: (results) => resolve(results.data),
+        error: (error) => reject(error),
+      });
+    });
+    return records;
   }
 }

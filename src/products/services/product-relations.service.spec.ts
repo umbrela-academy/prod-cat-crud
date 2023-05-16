@@ -258,10 +258,7 @@ describe('ProductRelationsService', () => {
     });
 
     it('should throw NotFoundException when product is not found', async () => {
-      service.throw404IfNonExistent = jest.fn().mockImplementationOnce(() => {
-        throw new NotFoundException();
-      });
-
+      jest.spyOn(prismaService.product, 'findUnique').mockResolvedValue(null);
       await expect(service.addImages(1, mockFiles)).rejects.toThrow(
         NotFoundException,
       );
@@ -297,18 +294,17 @@ describe('ProductRelationsService', () => {
     it('should add highlights and return highlights with their ids', async () => {
       service.throw404IfNonExistent = jest.fn().mockReturnValueOnce(null);
 
-      // expect(await service.addImages(1, mockFiles)).
       expect(await service.addHighlights(1, newHighlights)).toStrictEqual(
         prismaUpdateResponse,
       );
     });
 
     it('should throw NotFoundException when product is not found', async () => {
-      service.throw404IfNonExistent = jest.fn().mockReturnValueOnce(() => {
+      service.throw404IfNonExistent = jest.fn().mockImplementationOnce(() => {
         throw new NotFoundException();
       });
 
-      await expect(service.addHighlights(1, newHighlights)).rejects.toThrow(
+      expect(service.addHighlights(1, newHighlights)).rejects.toThrow(
         NotFoundException,
       );
     });

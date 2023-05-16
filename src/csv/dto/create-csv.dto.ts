@@ -1,6 +1,6 @@
 import { createZodDto } from '@anatine/zod-nestjs';
 import { BadRequestException } from '@nestjs/common';
-import { zName, zString, zStatus } from 'src/common/types/z.schema';
+import { zName, zString, zStatus } from '../../common/types/z.schema';
 import { z } from 'zod';
 
 const zImagesArray = z

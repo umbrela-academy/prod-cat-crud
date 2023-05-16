@@ -34,7 +34,7 @@ describe('ImagesService', () => {
     id: 1,
     destination: 'default',
     originalname: '34563.png',
-    filename: '0a1ea2db76b6b8060af4eef8cc1baa17',
+    filename: '0ebe5a400dc5f2c91d28a10b1ed18295',
     mimetype: 'image/png',
     category: 1,
   };
