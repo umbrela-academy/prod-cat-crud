@@ -19,7 +19,10 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "pretest:int": "npm run db:restart && dotenv -e .env npm exec prisma db push",
+    "test:int": "jest -i --no-cache --config ./test/jest-int.json",
+    "db:restart": "cd docker/dev && docker compose -f dev-db.compose.yml down -v && docker compose -f dev-db.compose.yml up -d && cd .. && cd .. && sleep 10"
   },
   "dependencies": {
     "@anatine/zod-mock": "^3.11.0",

@@ -157,6 +157,7 @@ export class CsvService {
     if (record.name) {
       data.name = record.name;
     }
+
     if (record.description) {
       data.description = record.description;
     }
@@ -169,10 +170,29 @@ export class CsvService {
       data.parent = (await this.getParentConnector(record.parentId)).parent;
     }
 
+    if (record.status) {
+      data.status = record.status;
+    }
     if (record.images) {
+      const productUrls = await this.prismaService.product.findMany({
+        select: {
+          images: {
+            select: { url: true },
+          },
+        },
+      });
+
+      const existingUrls = productUrls.flatMap((product) =>
+        product.images.map((image) => image.url),
+      );
+
+      const filteredUrls = record.images.filter(
+        (image) => !existingUrls.includes(image.url),
+      );
+
       data.images = {
         deleteMany: {},
-        ...(await this.getImageConnector(record.images)),
+        ...(await this.getImageConnector(filteredUrls)),
       };
     }
     return data;
@@ -202,10 +222,7 @@ export class CsvService {
     const create: any[] = [];
     await Promise.all(
       uniqueUrls.map(async (url: string) => {
-        const image = await this.findImage(url);
-        image
-          ? connect.push({ id: image.id })
-          : create.push(await this.csvCommonService.downloadImage(url));
+        create.push(await this.csvCommonService.downloadImage(url));
       }),
     );
     return {
@@ -219,7 +236,7 @@ export class CsvService {
       })),
     };
   }
-  async findImage(url: string) {
+  private async findImage(url: string) {
     return this.prismaService.productImage.findFirst({
       where: { url },
       select: { id: true },

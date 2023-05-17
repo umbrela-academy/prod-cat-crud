@@ -18,6 +18,11 @@ export const mockCSV = {
   buffer: fs.readFileSync(csvfilePath),
 } as Express.Multer.File;
 
+const updateCsvFilePath = join('test', 'update_mock.csv');
+export const updateMockCSV = {
+  buffer: fs.readFileSync(updateCsvFilePath),
+} as Express.Multer.File;
+
 export const httpResponse: AxiosResponse<any> = {
   status: 200,
   data: mockImage.buffer,

@@ -1,3 +1,3 @@
 name,description,highlight,status,categoryId,images
-Product 1,Description of Product 1,Highlight of Product 1,ACTIVE,1,"[""https://i.imgur.com/oPfHx7U_d.webp?maxwidth=520&shape=thumb&fidelity=high""]"
-Product 2,Description of Product 2,Highlight of Product 2,PENDING,1,"[""https://i.imgur.com/5iDO8tr_d.webp?maxwidth=520&shape=thumb&fidelity=high""]"
+Product 1,Description of Product 1,Highlight of Product,ACTIVE,1,"[""https://i.imgur.com/oPfHx7U_d.webp?maxwidth=520&shape=thumb&fidelity=high""]"
+Product 2,Description of Product 2,Highlight of Product,PENDING,1,"[""https://i.imgur.com/5iDO8tr_d.webp?maxwidth=520&shape=thumb&fidelity=high""]"

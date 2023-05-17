@@ -146,3 +146,44 @@ export const invalidProdUpdateRequest = [
 ];
 
 export const invalidCsv = generateMock(z.array(zCsvCreateSchema));
+
+export const ProdCreateResIntegration = [
+  {
+    id: 1,
+    highlights: [
+      {
+        id: 1,
+        description: 'Highlight of Product',
+      },
+    ],
+    images: ['http://localhost:3333/api/images/products/1'],
+  },
+  {
+    id: 2,
+    highlights: [
+      {
+        id: 2,
+        description: 'Highlight of Product',
+      },
+    ],
+    images: ['http://localhost:3333/api/images/products/2'],
+  },
+];
+
+export const ProdUpdateResIntegration = [
+  {
+    id: 1,
+    categoryId: 1,
+    parentId: null,
+    name: 'Updated Product 1',
+    description: 'Updated Description',
+    status: 'ACTIVE',
+    highlights: [
+      {
+        id: 1,
+        description: 'Highlight of Product',
+      },
+    ],
+    images: ['http://localhost:3333/api/images/products/3'],
+  },
+];
