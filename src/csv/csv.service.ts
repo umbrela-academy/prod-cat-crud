@@ -222,7 +222,10 @@ export class CsvService {
     const create: any[] = [];
     await Promise.all(
       uniqueUrls.map(async (url: string) => {
-        create.push(await this.csvCommonService.downloadImage(url));
+        const image = await this.findImage(url);
+        image
+          ? connect.push({ id: image.id })
+          : create.push(await this.csvCommonService.downloadImage(url));
       }),
     );
     return {
