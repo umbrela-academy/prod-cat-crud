@@ -3,7 +3,7 @@ export class DownloadedFileModel {
   originalname: string;
   filename: string;
   mimetype: string;
-  url: string;
+  url: string | null;
 }
 
 export type Image = {

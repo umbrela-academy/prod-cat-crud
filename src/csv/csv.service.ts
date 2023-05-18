@@ -43,7 +43,6 @@ export class CsvService {
             ...categoryConnector,
             ...parentConnector,
             images: {
-              connect: images.connect,
               create: images.create,
             },
             highlights: { create: { description: highlight } },
@@ -174,25 +173,9 @@ export class CsvService {
       data.status = record.status;
     }
     if (record.images) {
-      const productUrls = await this.prismaService.product.findMany({
-        select: {
-          images: {
-            select: { url: true },
-          },
-        },
-      });
-
-      const existingUrls = productUrls.flatMap((product) =>
-        product.images.map((image) => image.url),
-      );
-
-      const filteredUrls = record.images.filter(
-        (image) => !existingUrls.includes(image.url),
-      );
-
       data.images = {
         deleteMany: {},
-        ...(await this.getImageConnector(filteredUrls)),
+        ...(await this.getImageConnector(record.images)),
       };
     }
     return data;
@@ -218,18 +201,16 @@ export class CsvService {
 
   private async getImageConnector(urlArray: string[]) {
     const uniqueUrls = [...new Set(urlArray)];
-    const connect: any[] = [];
-    const create: any[] = [];
+    const create: DownloadedFileModel[] = [];
     await Promise.all(
       uniqueUrls.map(async (url: string) => {
         const image = await this.findImage(url);
         image
-          ? connect.push({ id: image.id })
+          ? create.push(image)
           : create.push(await this.csvCommonService.downloadImage(url));
       }),
     );
     return {
-      connect,
       create: create.map((imageFile: DownloadedFileModel) => ({
         destination: imageFile.destination,
         originalname: imageFile.originalname,
@@ -240,9 +221,20 @@ export class CsvService {
     };
   }
   private async findImage(url: string) {
-    return this.prismaService.productImage.findFirst({
+    const image = await this.prismaService.productImage.findFirst({
       where: { url },
-      select: { id: true },
+      select: {
+        destination: true,
+        originalname: true,
+        filename: true,
+        mimetype: true,
+        url: true,
+      },
     });
+    return image
+      ? {
+          ...image,
+        }
+      : null;
   }
 }
