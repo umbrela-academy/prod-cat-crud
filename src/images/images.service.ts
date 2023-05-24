@@ -5,6 +5,9 @@ import type { Response } from 'express';
 import { createReadStream, existsSync } from 'fs';
 import { join } from 'path';
 import { PrismaService } from '../common/services/prisma.service';
+import { MinioClientService } from 'src/minio-client/minio-client.service';
+import { from } from 'rxjs';
+import { Readable } from 'stream';
 
 @Injectable()
 export class ImagesService {
@@ -14,6 +17,7 @@ export class ImagesService {
   constructor(
     private prismaService: PrismaService,
     private configService: ConfigService,
+    private readonly minioService: MinioClientService,
   ) {}
 
   async findOneForCategory(id: number, res: Response): Promise<StreamableFile> {
@@ -32,26 +36,43 @@ export class ImagesService {
     return this.findOne(id, productImage, res);
   }
 
-  private async findOne(
+  async findOne(
     id: number,
     image: CategoryImage | ProductImage | null,
     res: Response,
   ): Promise<StreamableFile> {
-    if (image === null) {
-      throw new NotFoundException(`No image found with the id: ${id} `);
+    if (!image) {
+      throw new NotFoundException('Image not found');
     }
-    const filePath = join(image.destination, image.filename);
-    if (!existsSync(filePath)) {
-      throw new NotFoundException(`Image file not found for id: ${id}`);
+    const filename = image.filename;
+    try {
+      const observableBuffer = await this.minioService.get(filename);
+      const bufferStream = new Readable({
+        read() {},
+      });
+      observableBuffer.subscribe({
+        next(chunk) {
+          bufferStream.push(chunk);
+        },
+        error(err) {
+          bufferStream.emit('error', err);
+        },
+        complete() {
+          bufferStream.push(null);
+        },
+      });
+      res.set({
+        'Content-Type': image.mimetype,
+        'Content-Disposition': `attachment; filename="${image.originalname}"`,
+      });
+
+      return new StreamableFile(bufferStream);
+    } catch (error) {
+      throw new NotFoundException('Image not found');
     }
+  }
 
-    const imageFile = createReadStream(filePath);
-
-    res.set({
-      'Content-Type': image.mimetype,
-      'Content-Disposition': `attachment; filename="${image.originalname}"`,
-    });
-
-    return new StreamableFile(imageFile);
+  async upload(buffer: Buffer, filename: string): Promise<string> {
+    return await this.minioService.upload(buffer, filename);
   }
 }

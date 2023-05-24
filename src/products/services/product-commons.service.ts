@@ -3,6 +3,8 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../common/services/prisma.service';
 import { toGetProductDto, toImageUrl } from '../product.utils';
+import { ImagesService } from 'src/images/images.service';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class ProductCommonsService {
@@ -19,18 +21,27 @@ export class ProductCommonsService {
   constructor(
     private prismaService: PrismaService,
     private configService: ConfigService,
+    private imageService: ImagesService,
   ) {}
 
-  getImagesPayload(imageFileDtos: UploadedFileModel[]) {
-    const data = imageFileDtos.map((imageFileDto) => ({
-      destination: this.defaultDestination,
-      originalname: imageFileDto.originalname,
-      filename: imageFileDto.filename,
-      mimetype: imageFileDto.mimetype,
-    }));
+  async getImagesPayload(imageFileDtos: UploadedFileModel[]) {
+    const data = await Promise.all(
+      imageFileDtos.map(async (imageFileDto) => {
+        const filename = await this.saveImage(
+          imageFileDto.buffer,
+          imageFileDto.mimetype,
+        );
+        return {
+          destination: this.defaultDestination,
+          originalname: imageFileDto.originalname,
+          filename,
+          mimetype: imageFileDto.mimetype,
+        };
+      }),
+    );
+
     return { createMany: { data } };
   }
-
   async exists(id: number, isProduct = true): Promise<boolean> {
     const whereQuery = {
       where: {
@@ -44,5 +55,11 @@ export class ProductCommonsService {
       ? await this.prismaService.product.findUnique(whereQuery)
       : await this.prismaService.category.findUnique(whereQuery);
     return found !== null;
+  }
+
+  async saveImage(buffer: Buffer, mimetype: string): Promise<string> {
+    const ext: string = mimetype.split('/')[1];
+    const filename: string = crypto.randomUUID() + '.' + ext;
+    return await this.imageService.upload(buffer, filename);
   }
 }

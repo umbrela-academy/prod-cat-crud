@@ -19,4 +19,13 @@ export interface Config {
   nest: NestConfig;
   swagger: SwaggerConfig;
   imageStore: ImageStorageConfig;
+  minioClient: MinioClientConfig;
+}
+
+export interface MinioClientConfig {
+  endpoint: string;
+  port: number;
+  accessKey: string;
+  secretKey: string;
+  bucketName: string;
 }

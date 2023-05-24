@@ -21,6 +21,13 @@ export default (): Config => {
       storeUrl:
         process.env.IMG_STORE_URL ?? 'http://localhost:3333/api/images/',
     },
+    minioClient: {
+      endpoint: process.env.MINIO_ENDPOINT ?? 'localhost',
+      port: parseInt(process.env.MINIO_PORT ?? '9000'),
+      accessKey: process.env.MINIO_ACCESS_KEY ?? '',
+      secretKey: process.env.MINIO_SECRET_KEY ?? '',
+      bucketName: process.env.MINIO_BUCKET_NAME ?? 'prodcatcrud',
+    },
   };
 
   return config;
