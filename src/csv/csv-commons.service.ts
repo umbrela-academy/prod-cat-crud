@@ -1,8 +1,6 @@
 import { HttpService } from '@nestjs/axios';
 import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { createWriteStream } from 'fs';
-import { join } from 'path';
 import { lastValueFrom } from 'rxjs';
 import * as sharp from 'sharp';
 import { toImageUrl } from '../categories/category.utils';
@@ -11,7 +9,7 @@ import { toGetProductDto } from '../products/product.utils';
 import { Readable } from 'stream';
 import * as papa from 'papaparse';
 import * as crypto from 'crypto';
-import { ImagesService } from 'src/images/images.service';
+import { ImagesService } from '../images/images.service';
 
 @Injectable()
 export class CsvCommonService {

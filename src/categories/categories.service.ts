@@ -7,7 +7,7 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 import { CreatedCategoryDto } from './dto/created-category.dto';
 import { GetCategoryDto } from './dto/get-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
-import { ImagesService } from 'src/images/images.service';
+import { ImagesService } from '../images/images.service';
 import * as crypto from 'crypto';
 
 @Injectable()

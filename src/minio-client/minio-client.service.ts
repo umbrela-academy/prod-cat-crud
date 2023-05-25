@@ -1,9 +1,13 @@
-import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { error } from 'console';
-import { UploadedObjectInfo } from 'minio';
 import { MinioService } from 'nestjs-minio-client';
-import { Observable, catchError, throwError } from 'rxjs';
+import { Observable } from 'rxjs';
 import { Readable } from 'stream';
 
 @Injectable()
@@ -25,49 +29,40 @@ export class MinioClientService {
   }
   async upload(buffer: Buffer, filename: string) {
     const baseBucket: string = this.baseBucket;
-    await this.client.putObject(
-      baseBucket,
-      filename,
-      buffer,
-      function (err: Error | null, res: UploadedObjectInfo) {
-        if (err) {
-          throw new HttpException(
-            'Error uploading file',
-            HttpStatus.BAD_REQUEST,
-          );
-        }
-      },
-    );
-    return filename;
+    try {
+      await this.client.putObject(baseBucket, filename, buffer);
+      return filename;
+    } catch (err) {
+      this.logger.error(`Error uploading file: ${err.message}`);
+      throw new HttpException(
+        'Failed to upload file',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
-  async get(filename: string): Promise<Observable<Buffer>> {
+
+  get(filename: string): Observable<Buffer> {
     return new Observable<Buffer>((observer) => {
-      const stream = this.client.getObject(
+      this.client.getObject(
         this.baseBucket,
         filename,
         (err: Error | null, dataStream: Readable) => {
           if (err) {
-            observer.error(
-              new HttpException(
-                'Error Retrieving file',
-                HttpStatus.BAD_REQUEST,
-              ),
+            return observer.error(
+              new NotFoundException('Error Retrieving file'),
             );
-          } else {
-            dataStream.on('data', (chunk: Buffer) => {
-              observer.next(chunk);
-            });
-
-            dataStream.on('end', () => {
-              observer.complete();
-            });
-
-            dataStream.on('error', (error: Error) => {
-              observer.error(error);
-            });
           }
+          dataStream.on('data', (chunk: Buffer) => {
+            observer.next(chunk);
+          });
+          dataStream.on('end', () => {
+            observer.complete();
+          });
+          dataStream.on('error', (error: Error) => {
+            observer.error(error);
+          });
         },
       );
-    }).pipe(catchError((error: Error) => throwError(error)));
+    });
   }
 }

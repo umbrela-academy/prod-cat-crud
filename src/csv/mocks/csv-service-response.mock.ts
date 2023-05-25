@@ -14,7 +14,7 @@ export const csvProdCreatedResponse: CreatedProductDto[] = [
         description: 'Product Highlight 1',
       },
     ],
-    images: ['/products/1'],
+    images: ['http://localhost:3333/api/images/products/1'],
   },
   {
     id: 2,
@@ -24,7 +24,7 @@ export const csvProdCreatedResponse: CreatedProductDto[] = [
         description: 'Product Highlight 2',
       },
     ],
-    images: ['/products/2'],
+    images: ['http://localhost:3333/api/images/products/2'],
   },
 ];
 
@@ -117,7 +117,7 @@ export const csvProdUpdateResponse: GetProductDto[] = [
         description: 'Highlight of Product 1',
       },
     ],
-    images: ['/products/1'],
+    images: ['http://localhost:3333/api/images/products/1'],
   },
   {
     id: 2,
@@ -132,7 +132,7 @@ export const csvProdUpdateResponse: GetProductDto[] = [
         description: 'Highlight of Product 2',
       },
     ],
-    images: ['/products/2'],
+    images: ['http://localhost:3333/api/images/products/2'],
   },
 ];
 
@@ -187,3 +187,12 @@ export const ProdUpdateResIntegration = [
     images: ['http://localhost:3333/api/images/products/3'],
   },
 ];
+
+export const findImagePrismaResponse = {
+  id: 1,
+  destination: 'default',
+  originalname: 'originalname.png',
+  filename: 'filename.png',
+  mimetype: 'image/png',
+  url: 'example.com/123',
+};

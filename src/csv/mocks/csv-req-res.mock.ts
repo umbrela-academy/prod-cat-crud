@@ -42,7 +42,7 @@ export const RejecthttpResponse: AxiosResponse<any> = {
 };
 export const response: DownloadedFileModel = {
   destination: 'default',
-  filename: '1683818690154.png',
+  filename: 'd477d7e4-5803-4f94-9f78-4cebb05f42d6.png',
   originalname: 'image.png',
   mimetype: 'image/png',
   url: 'https://i.imgur.com/2ABGp0Q.png',

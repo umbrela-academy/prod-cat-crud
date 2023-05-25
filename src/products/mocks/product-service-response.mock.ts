@@ -32,7 +32,10 @@ export const prodServiceCreatedResponse: CreatedProductDto = {
       id: 2,
     },
   ],
-  images: ['/products/1', '/products/2'],
+  images: [
+    'http://localhost:3333/api/images/products/1',
+    'http://localhost:3333/api/images/products/2',
+  ],
 };
 
 export const prodServiceFindMultiResponse = [
@@ -69,7 +72,10 @@ export const serviceLayerProdDeleteResponse = {
       description: 'prod highlight',
     },
   ],
-  images: ['/products/1', '/products/2'],
+  images: [
+    'http://localhost:3333/api/images/products/1',
+    'http://localhost:3333/api/images/products/2',
+  ],
 };
 
 export const prismaLayerProdUpdateResponse = prismaLayerProdDeleteResponse;

@@ -1,6 +1,6 @@
 import { createMock } from '@golevelup/ts-jest';
 import { StreamableFile } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import type { Response } from 'express';
 import { createReadStream } from 'fs';
@@ -8,6 +8,8 @@ import { join } from 'path';
 import { PrismaService } from './../common/services/prisma.service';
 import { ImagesController } from './images.controller';
 import { ImagesService } from './images.service';
+import { MinioClientModule } from '../minio-client/minio-client.module';
+import config from '../common/config/config';
 
 describe('ImagesController', () => {
   let controller: ImagesController;
@@ -15,8 +17,9 @@ describe('ImagesController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [MinioClientModule, ConfigModule.forRoot({ load: [config] })],
       controllers: [ImagesController],
-      providers: [ImagesService, PrismaService, ConfigService],
+      providers: [ImagesService, PrismaService],
     }).compile();
 
     controller = module.get<ImagesController>(ImagesController);

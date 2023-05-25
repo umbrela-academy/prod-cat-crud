@@ -1,10 +1,9 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { MulterModule } from '@nestjs/platform-express';
 import { PrismaService } from '../common/services/prisma.service';
 import { ImagesController } from './images.controller';
 import { ImagesService } from './images.service';
-import { MinioClientModule } from 'src/minio-client/minio-client.module';
+import { MinioClientModule } from '../minio-client/minio-client.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   providers: [ImagesService, PrismaService],
@@ -17,6 +16,7 @@ import { MinioClientModule } from 'src/minio-client/minio-client.module';
     //   inject: [ConfigService],
     // }),
     MinioClientModule,
+    ConfigModule,
   ],
   exports: [ImagesService],
   controllers: [ImagesController],

@@ -2,11 +2,9 @@ import { Injectable, NotFoundException, StreamableFile } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { CategoryImage, ProductImage } from '@prisma/client';
 import type { Response } from 'express';
-import { createReadStream, existsSync } from 'fs';
-import { join } from 'path';
 import { PrismaService } from '../common/services/prisma.service';
-import { MinioClientService } from 'src/minio-client/minio-client.service';
-import { from } from 'rxjs';
+import { MinioClientService } from '../minio-client/minio-client.service';
+import { Observable } from 'rxjs';
 import { Readable } from 'stream';
 
 @Injectable()
@@ -44,23 +42,31 @@ export class ImagesService {
     if (!image) {
       throw new NotFoundException('Image not found');
     }
+
     const filename = image.filename;
+
     try {
-      const observableBuffer = await this.minioService.get(filename);
+      const observableBuffer: Observable<Buffer> =
+        this.minioService.get(filename);
       const bufferStream = new Readable({
         read() {},
       });
-      observableBuffer.subscribe({
-        next(chunk) {
-          bufferStream.push(chunk);
-        },
-        error(err) {
-          bufferStream.emit('error', err);
-        },
-        complete() {
-          bufferStream.push(null);
-        },
+
+      await new Promise<void>((resolve, reject) => {
+        observableBuffer.subscribe({
+          next(chunk) {
+            bufferStream.push(chunk);
+          },
+          error(err) {
+            reject(err);
+          },
+          complete() {
+            bufferStream.push(null);
+            resolve();
+          },
+        });
       });
+
       res.set({
         'Content-Type': image.mimetype,
         'Content-Disposition': `attachment; filename="${image.originalname}"`,
@@ -71,7 +77,6 @@ export class ImagesService {
       throw new NotFoundException('Image not found');
     }
   }
-
   async upload(buffer: Buffer, filename: string): Promise<string> {
     return await this.minioService.upload(buffer, filename);
   }

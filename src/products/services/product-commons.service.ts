@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../common/services/prisma.service';
 import { toGetProductDto, toImageUrl } from '../product.utils';
-import { ImagesService } from 'src/images/images.service';
+import { ImagesService } from '../../images/images.service';
 import * as crypto from 'crypto';
 
 @Injectable()

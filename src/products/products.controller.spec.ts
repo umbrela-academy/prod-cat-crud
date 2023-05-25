@@ -1,5 +1,5 @@
 import { BadRequestException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from './../common/services/prisma.service';
 import {
@@ -19,6 +19,8 @@ import { ProductsController } from './products.controller';
 import { ProductCommonsService } from './services/product-commons.service';
 import { ProductRelationsService } from './services/product-relations.service';
 import { ProductsService } from './services/products.service';
+import { ImagesModule } from '../../src/images/images.module';
+import config from '../common/config/config';
 
 /**
  * Unit Tests for the Products Controller layer.
@@ -33,6 +35,7 @@ describe('ProductsController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [ImagesModule, ConfigModule.forRoot({ load: [config] })],
       controllers: [ProductsController],
       providers: [
         ProductsService,

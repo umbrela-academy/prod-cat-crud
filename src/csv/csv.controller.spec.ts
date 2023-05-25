@@ -11,6 +11,8 @@ import {
   csvProdCreatedResponse,
   csvProdUpdateResponse,
 } from './mocks/csv-service-response.mock';
+import { ImagesModule } from '../images/images.module';
+import config from '../common/config/config';
 
 describe('CsvController', () => {
   let controller: CsvController;
@@ -18,7 +20,11 @@ describe('CsvController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [HttpModule, ConfigModule],
+      imports: [
+        HttpModule,
+        ConfigModule.forRoot({ load: [config] }),
+        ImagesModule,
+      ],
       controllers: [CsvController],
       providers: [CsvService, CsvCommonService, PrismaService],
     }).compile();

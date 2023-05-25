@@ -17,7 +17,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       inject: [ConfigService],
     }),
   ],
-  providers: [MinioClientService],
+  providers: [MinioClientService, ConfigService],
   exports: [MinioClientService],
 })
 export class MinioClientModule {}
