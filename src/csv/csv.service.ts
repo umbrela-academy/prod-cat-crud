@@ -42,9 +42,7 @@ export class CsvService {
             description,
             ...categoryConnector,
             ...parentConnector,
-            images: {
-              create: images.create,
-            },
+            images,
             highlights: { create: { description: highlight } },
             status,
           },
@@ -210,15 +208,16 @@ export class CsvService {
           : create.push(await this.csvCommonService.downloadImage(url));
       }),
     );
-    return {
-      create: create.map((imageFile: DownloadedFileModel) => ({
-        destination: imageFile.destination,
-        originalname: imageFile.originalname,
-        filename: imageFile.filename,
-        mimetype: imageFile.mimetype,
-        url: imageFile.url,
-      })),
-    };
+
+    const data = create.map((imageFile: DownloadedFileModel) => ({
+      destination: imageFile.destination,
+      originalname: imageFile.originalname,
+      filename: imageFile.filename,
+      mimetype: imageFile.mimetype,
+      url: imageFile.url,
+    }));
+
+    return { createMany: { data } };
   }
   private async findImage(url: string) {
     const image = await this.prismaService.productImage.findFirst({
