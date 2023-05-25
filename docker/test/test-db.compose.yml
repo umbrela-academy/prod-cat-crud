@@ -2,20 +2,14 @@ version: '3.8'
 services:
   mysql:
     image: mysql:8.0.31
-    container_name: dev-db
+    container_name: test-db
     restart: always
     ports:
-      - 3306:3306
+      - 3000:3306
     env_file:
       - .env
-    volumes:
-      - mysql:/var/lib/mysql
     healthcheck:
       test: mysql ${MYSQL_DATABASE} --user=${MYSQL_USER} --password='${MYSQL_PASSWORD}' --silent --execute "SELECT 1;"
       interval: 30s
       timeout: 60s
       retries: 5
-
-volumes:
-  mysql:
-    name: dev-db

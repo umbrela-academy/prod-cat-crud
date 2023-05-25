@@ -2,9 +2,10 @@ import { Injectable, NotFoundException, StreamableFile } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { CategoryImage, ProductImage } from '@prisma/client';
 import type { Response } from 'express';
-import { createReadStream, existsSync } from 'fs';
-import { join } from 'path';
 import { PrismaService } from '../common/services/prisma.service';
+import { MinioClientService } from '../minio-client/minio-client.service';
+import { Observable } from 'rxjs';
+import { Readable } from 'stream';
 
 @Injectable()
 export class ImagesService {
@@ -14,6 +15,7 @@ export class ImagesService {
   constructor(
     private prismaService: PrismaService,
     private configService: ConfigService,
+    private readonly minioService: MinioClientService,
   ) {}
 
   async findOneForCategory(id: number, res: Response): Promise<StreamableFile> {
@@ -32,26 +34,50 @@ export class ImagesService {
     return this.findOne(id, productImage, res);
   }
 
-  private async findOne(
+  async findOne(
     id: number,
     image: CategoryImage | ProductImage | null,
     res: Response,
   ): Promise<StreamableFile> {
-    if (image === null) {
-      throw new NotFoundException(`No image found with the id: ${id} `);
-    }
-    const filePath = join(image.destination, image.filename);
-    if (!existsSync(filePath)) {
-      throw new NotFoundException(`Image file not found for id: ${id}`);
+    if (!image) {
+      throw new NotFoundException('Image not found');
     }
 
-    const imageFile = createReadStream(filePath);
+    const filename = image.filename;
 
-    res.set({
-      'Content-Type': image.mimetype,
-      'Content-Disposition': `attachment; filename="${image.originalname}"`,
-    });
+    try {
+      const observableBuffer: Observable<Buffer> =
+        this.minioService.get(filename);
+      const bufferStream = new Readable({
+        read() {},
+      });
 
-    return new StreamableFile(imageFile);
+      await new Promise<void>((resolve, reject) => {
+        observableBuffer.subscribe({
+          next(chunk) {
+            bufferStream.push(chunk);
+          },
+          error(err) {
+            reject(err);
+          },
+          complete() {
+            bufferStream.push(null);
+            resolve();
+          },
+        });
+      });
+
+      res.set({
+        'Content-Type': image.mimetype,
+        'Content-Disposition': `attachment; filename="${image.originalname}"`,
+      });
+
+      return new StreamableFile(bufferStream);
+    } catch (error) {
+      throw new NotFoundException('Image not found');
+    }
+  }
+  async upload(buffer: Buffer, filename: string): Promise<string> {
+    return await this.minioService.upload(buffer, filename);
   }
 }

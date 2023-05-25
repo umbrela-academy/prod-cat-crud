@@ -7,6 +7,7 @@ import config from './common/config/config';
 import { ImagesModule } from './images/images.module';
 import { ProductsModule } from './products/products.module';
 import { CsvModule } from './csv/csv.module';
+import { MinioClientModule } from './minio-client/minio-client.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { CsvModule } from './csv/csv.module';
     CategoriesModule,
     ImagesModule,
     CsvModule,
+    MinioClientModule,
   ],
 })
 export class AppModule {}

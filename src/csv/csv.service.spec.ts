@@ -5,6 +5,7 @@ import {
   csvProdCreatedResponse,
   csvProdUpdateRequest,
   csvProdUpdateResponse,
+  findImagePrismaResponse,
   invalidCsv,
   invalidProdUpdateRequest,
   prismaCsvCreatedResponse,
@@ -13,19 +14,24 @@ import {
 import { PrismaService } from '../common/services/prisma.service';
 import { ConfigModule } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
-import { Category } from '@prisma/client';
+import { Category, PrismaClient, Product, ProductImage } from '@prisma/client';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { mockCSV } from './mocks/csv-req-res.mock';
+import { ImagesModule } from '../images/images.module';
+import config from '../common/config/config';
+import { ImagesService } from '../images/images.service';
+import { mockDeep } from 'jest-mock-extended';
 
 describe('CsvService', () => {
   let service: CsvService;
   let prismaService: PrismaService;
   let commonsService: CsvCommonService;
   let httpService: HttpService;
+  let imageService: ImagesService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [ConfigModule],
+      imports: [ConfigModule.forRoot({ load: [config] }), ImagesModule],
       providers: [
         CsvService,
         PrismaService,
@@ -37,12 +43,17 @@ describe('CsvService', () => {
           },
         },
       ],
-    }).compile();
+    })
+      .overrideProvider(PrismaService)
+      .useValue(mockDeep<PrismaClient>())
+
+      .compile();
 
     service = module.get<CsvService>(CsvService);
     prismaService = module.get<PrismaService>(PrismaService);
     commonsService = module.get<CsvCommonService>(CsvCommonService);
     httpService = module.get<HttpService>(HttpService);
+    imageService = module.get<ImagesService>(ImagesService);
   });
 
   it('should be defined', () => {
@@ -60,9 +71,14 @@ describe('CsvService', () => {
         .spyOn(prismaService.category, 'findUnique')
         .mockResolvedValue({ id: 1 } as Category);
 
+      const imageFindSpy = jest
+        .spyOn(prismaService.productImage, 'findFirst')
+        .mockResolvedValue(findImagePrismaResponse as ProductImage);
+
       const transactionSpy = jest
         .spyOn(prismaService, '$transaction')
         .mockResolvedValueOnce(prismaCsvCreatedResponse);
+
       expect(await service.create(fileBuffer)).toStrictEqual(result);
       expect(categoryFindUniqueSpy).toBeCalledTimes(rowsInCsv);
       expect(transactionSpy).toBeCalledTimes(1);
@@ -96,12 +112,19 @@ describe('CsvService', () => {
       jest
         .spyOn(commonsService, 'parseCsv')
         .mockResolvedValueOnce(csvProdUpdateRequest);
+
+      const productfindUniqueSpy = jest
+        .spyOn(prismaService.product, 'findUnique')
+        .mockResolvedValue({ id: 1 } as Product);
+
       const categoryFindUniqueSpy = jest
         .spyOn(prismaService.category, 'findUnique')
         .mockResolvedValue({ id: 1 } as Category);
+
       const transactionSpy = jest
         .spyOn(prismaService, '$transaction')
         .mockResolvedValue(prismaCsvUpdateResponse);
+
       expect(await service.update(fileBuffer)).toStrictEqual(result);
       expect(transactionSpy).toBeCalledTimes(1);
       expect(categoryFindUniqueSpy).toBeCalledTimes(rowsInCsv);

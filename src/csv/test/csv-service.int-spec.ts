@@ -21,7 +21,6 @@ describe('CsvService (Integration)', () => {
 
     prismaService = moduleRef.get(PrismaService);
     csvService = moduleRef.get(CsvService);
-    await resetDb();
   });
 
   describe('create', () => {

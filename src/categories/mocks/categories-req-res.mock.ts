@@ -49,7 +49,7 @@ export const deleteResponse = {
   parentId: 4,
   name: 'AS category',
   status: 'ACTIVE',
-  image: '/categories/1',
+  image: 'http://localhost:3333/api/images/categories/1',
 };
 
 export const updateResponse = deleteResponse;

@@ -1,5 +1,5 @@
 import { NotFoundException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { mockFiles, prodCreateRequest } from '../mocks/product-req-res.mock';
 import {
@@ -18,7 +18,10 @@ import {
 } from './../mocks/product-service-response.mock';
 import { ProductCommonsService } from './product-commons.service';
 import { ProductsService } from './products.service';
-import { Category } from '@prisma/client';
+import { Category, PrismaClient } from '@prisma/client';
+import { ImagesModule } from '../../images/images.module';
+import config from '../../common/config/config';
+import { mockDeep } from 'jest-mock-extended';
 
 describe('ProductsService', () => {
   let service: ProductsService;
@@ -27,13 +30,12 @@ describe('ProductsService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        ProductsService,
-        ProductCommonsService,
-        PrismaService,
-        ConfigService,
-      ],
-    }).compile();
+      imports: [ImagesModule, ConfigModule.forRoot({ load: [config] })],
+      providers: [ProductsService, ProductCommonsService, PrismaService],
+    })
+      .overrideProvider(PrismaService)
+      .useValue(mockDeep<PrismaClient>())
+      .compile();
 
     service = module.get<ProductsService>(ProductsService);
     prismaService = module.get<PrismaService>(PrismaService);

@@ -137,7 +137,9 @@ export class ProductRelationsService {
   ): Promise<UpdatedProductImagesDto[]> {
     await this.throw404IfNonExistent(id);
 
-    const images = this.productCommonsService.getImagesPayload(imageFileDtos);
+    const images = await this.productCommonsService.getImagesPayload(
+      imageFileDtos,
+    );
 
     const res = await this.prismaService.product.update({
       where: {

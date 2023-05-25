@@ -7,6 +7,8 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 import { CreatedCategoryDto } from './dto/created-category.dto';
 import { GetCategoryDto } from './dto/get-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
+import { ImagesService } from '../images/images.service';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class CategoriesService {
@@ -23,6 +25,7 @@ export class CategoriesService {
   constructor(
     private prismaService: PrismaService,
     private configService: ConfigService,
+    private imageService: ImagesService,
   ) {}
 
   async create(
@@ -30,6 +33,11 @@ export class CategoriesService {
     imageFileDto: UploadedFileModel,
   ): Promise<CreatedCategoryDto> {
     const parentConnector = await this.getParentConnector(createCategoryDto);
+    const filename = await this.saveImage(
+      imageFileDto.buffer,
+      imageFileDto.mimetype,
+    );
+
     const response = await this.prismaService.category.create({
       data: {
         name: createCategoryDto.name,
@@ -39,7 +47,7 @@ export class CategoriesService {
           create: {
             destination: this.defaultDestination,
             originalname: imageFileDto.originalname,
-            filename: imageFileDto.filename,
+            filename,
             mimetype: imageFileDto.mimetype,
           },
         },
@@ -190,5 +198,11 @@ export class CategoriesService {
     if (!categoryExists) {
       throw new NotFoundException(`Category with id: ${id} was not found`);
     }
+  }
+
+  async saveImage(buffer: Buffer, mimetype: string): Promise<string> {
+    const ext: string = mimetype.split('/')[1];
+    const filename: string = crypto.randomUUID() + '.' + ext;
+    return await this.imageService.upload(buffer, filename);
   }
 }
