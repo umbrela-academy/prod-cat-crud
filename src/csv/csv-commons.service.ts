@@ -6,8 +6,6 @@ import * as sharp from 'sharp';
 import { toImageUrl } from '../categories/category.utils';
 import { DownloadedFileModel } from '../common/types/downloaded-file.model';
 import { toGetProductDto } from '../products/product.utils';
-import { Readable } from 'stream';
-import * as papa from 'papaparse';
 import * as crypto from 'crypto';
 import { ImagesService } from '../images/images.service';
 
@@ -65,21 +63,5 @@ export class CsvCommonService {
         'Error processing image metadata. Response Data may not be an image',
       );
     }
-  }
-
-  async parseCsv(fileBuffer: String) {
-    const buffer = Buffer.from(fileBuffer, 'base64');
-    const dataStream = Readable.from(buffer);
-
-    const records = await new Promise<any>((resolve, reject) => {
-      papa.parse(dataStream, {
-        header: true,
-        skipEmptyLines: true,
-        dynamicTyping: true,
-        complete: (results) => resolve(results.data),
-        error: (error) => reject(error),
-      });
-    });
-    return records;
   }
 }

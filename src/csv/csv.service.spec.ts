@@ -2,12 +2,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CsvCommonService } from './csv-commons.service';
 import { CsvService } from './csv.service';
 import {
+  csvProdCreateRequest,
   csvProdCreatedResponse,
   csvProdUpdateRequest,
   csvProdUpdateResponse,
   findImagePrismaResponse,
-  invalidCsv,
-  invalidProdUpdateRequest,
   prismaCsvCreatedResponse,
   prismaCsvUpdateResponse,
 } from './mocks/csv-service-response.mock';
@@ -15,8 +14,7 @@ import { PrismaService } from '../common/services/prisma.service';
 import { ConfigModule } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { Category, PrismaClient, Product, ProductImage } from '@prisma/client';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
-import { mockCSV } from './mocks/csv-req-res.mock';
+import { NotFoundException } from '@nestjs/common';
 import { ImagesModule } from '../images/images.module';
 import config from '../common/config/config';
 import { ImagesService } from '../images/images.service';
@@ -61,8 +59,6 @@ describe('CsvService', () => {
   });
 
   describe('create', () => {
-    const request = mockCSV;
-    const fileBuffer = request.buffer.toString('base64');
     const result = csvProdCreatedResponse;
     const rowsInCsv = csvProdCreatedResponse.length;
 
@@ -79,7 +75,7 @@ describe('CsvService', () => {
         .spyOn(prismaService, '$transaction')
         .mockResolvedValueOnce(prismaCsvCreatedResponse);
 
-      expect(await service.create(fileBuffer)).toStrictEqual(result);
+      expect(await service.create(csvProdCreateRequest)).toStrictEqual(result);
       expect(categoryFindUniqueSpy).toBeCalledTimes(rowsInCsv);
       expect(transactionSpy).toBeCalledTimes(1);
     });
@@ -89,52 +85,34 @@ describe('CsvService', () => {
         .spyOn(prismaService.category, 'findUnique')
         .mockResolvedValue(null);
 
-      await expect(service.create(fileBuffer)).rejects.toThrow(
+      await expect(service.create(csvProdCreateRequest)).rejects.toThrow(
         NotFoundException,
       );
     });
 
-    it('should throw BadRequiredException if required header is missing', async () => {
-      jest.spyOn(commonsService, 'parseCsv').mockResolvedValueOnce(invalidCsv);
-      await expect(service.create(fileBuffer)).rejects.toThrow(
-        BadRequestException,
-      );
-    });
-  });
+    describe('update', () => {
+      const result = csvProdUpdateResponse;
+      const rowsInCsv = csvProdUpdateRequest.length;
 
-  describe('update', () => {
-    const request = mockCSV;
-    const fileBuffer = request.buffer.toString('base64');
-    const result = csvProdUpdateResponse;
-    const rowsInCsv = csvProdUpdateRequest.length;
+      it('should return array of id, highlights and image urls', async () => {
+        const productfindUniqueSpy = jest
+          .spyOn(prismaService.product, 'findUnique')
+          .mockResolvedValue({ id: 1 } as Product);
 
-    it('should return array of id, highlights and image urls', async () => {
-      jest
-        .spyOn(commonsService, 'parseCsv')
-        .mockResolvedValueOnce(csvProdUpdateRequest);
+        const categoryFindUniqueSpy = jest
+          .spyOn(prismaService.category, 'findUnique')
+          .mockResolvedValue({ id: 1 } as Category);
 
-      const productfindUniqueSpy = jest
-        .spyOn(prismaService.product, 'findUnique')
-        .mockResolvedValue({ id: 1 } as Product);
+        const transactionSpy = jest
+          .spyOn(prismaService, '$transaction')
+          .mockResolvedValue(prismaCsvUpdateResponse);
 
-      const categoryFindUniqueSpy = jest
-        .spyOn(prismaService.category, 'findUnique')
-        .mockResolvedValue({ id: 1 } as Category);
-
-      const transactionSpy = jest
-        .spyOn(prismaService, '$transaction')
-        .mockResolvedValue(prismaCsvUpdateResponse);
-
-      expect(await service.update(fileBuffer)).toStrictEqual(result);
-      expect(transactionSpy).toBeCalledTimes(1);
-      expect(categoryFindUniqueSpy).toBeCalledTimes(rowsInCsv);
-    });
-
-    it('should throw BadRequestException if id is not available', async () => {
-      jest
-        .spyOn(commonsService, 'parseCsv')
-        .mockResolvedValueOnce(invalidProdUpdateRequest);
-      expect(service.update(fileBuffer)).rejects.toThrow(BadRequestException);
+        expect(await service.update(csvProdUpdateRequest)).toStrictEqual(
+          result,
+        );
+        expect(transactionSpy).toBeCalledTimes(1);
+        expect(categoryFindUniqueSpy).toBeCalledTimes(rowsInCsv);
+      });
     });
   });
 });
