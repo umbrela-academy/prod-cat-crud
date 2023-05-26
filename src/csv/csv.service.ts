@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../common/services/prisma.service';
 import { DownloadedFileModel } from '../common/types/downloaded-file.model';
 import { CreatedProductDto } from '../products/dto/created-product.dto';
@@ -30,6 +26,7 @@ export class CsvService {
         const parentConnector = parentId
           ? await this.getParentConnector(parentId)
           : null;
+
         const images = await this.getImageConnector(record.images);
 
         const product = this.prismaService.product.create({
@@ -61,6 +58,7 @@ export class CsvService {
         products.push(product);
       }),
     );
+
     return (await this.prismaService.$transaction(products)).map(
       this.csvCommonService.toDto,
     );
@@ -177,12 +175,12 @@ export class CsvService {
     await Promise.all(
       uniqueUrls.map(async (url: string) => {
         const image = await this.findImage(url);
+
         image
           ? create.push(image)
           : create.push(await this.csvCommonService.downloadImage(url));
       }),
     );
-
     const data = create.map((imageFile: DownloadedFileModel) => ({
       destination: imageFile.destination,
       originalname: imageFile.originalname,

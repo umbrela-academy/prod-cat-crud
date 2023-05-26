@@ -16,7 +16,6 @@ export class ExcelTransformationPipe implements PipeTransform {
     const parseSchema = this.create ? zCsvCreateArray : zCsvUpdateArray;
     const parseResult = parseSchema.safeParse(json);
     if (!parseResult.success) {
-      console.log(parseResult.error);
       const errorMessages = parseResult.error.issues.map(
         (issue) => issue.message,
       );

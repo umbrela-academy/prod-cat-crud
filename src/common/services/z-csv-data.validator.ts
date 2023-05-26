@@ -5,18 +5,14 @@ import { zName, zString, zStatus } from '../types/z.schema';
 const zImagesArray = z
   .string()
   .transform((value) => {
-    try {
-      const imagesArray = JSON.parse(value);
-      if (Array.isArray(imagesArray)) {
-        return imagesArray;
-      }
-    } catch (e) {}
-    return [];
+    const urls = value.split(',').map((url) => url.trim());
+    return urls;
   })
   .refine((value) => {
     if (value.length === 0) {
-      throw new BadRequestException('images row must be an array ');
+      throw new BadRequestException('images row must not be empty');
     }
+
     return true;
   });
 
@@ -42,13 +38,14 @@ export const zCsvUpdate = z.object({
   images: z
     .string()
     .transform((value) => {
-      try {
-        const imagesArray = JSON.parse(value);
-        if (Array.isArray(imagesArray)) {
-          return imagesArray;
-        }
-      } catch (e) {}
-      return [];
+      const urls = value.split(',').map((url) => url.trim());
+      return urls;
+    })
+    .refine((value) => {
+      if (value.length === 0) {
+        throw new BadRequestException('images row must not be empty');
+      }
+      return true;
     })
     .optional()
     .nullable(),
