@@ -9,8 +9,8 @@ import { CreatedProductDto } from '../products/dto/created-product.dto';
 import { GetProductDto } from '../products/dto/get-product.dto';
 import { includeHightsAndImages } from '../products/product.utils';
 import { CsvCommonService } from './csv-commons.service';
-import { CreateCsvDto, zCsvCreateSchema } from './dto/create-csv.dto';
-import { UpdateCsvDto, zCsvUpdateSchema } from './dto/update-csv.dto';
+import { CreateCsvDto } from './dto/create-csv.dto';
+import { UpdateCsvDto } from './dto/update-csv.dto';
 
 @Injectable()
 export class CsvService {
@@ -19,22 +19,18 @@ export class CsvService {
     private csvCommonService: CsvCommonService,
   ) {}
 
-  async create(fileBuffer: String): Promise<CreatedProductDto[]> {
-    const records: CreateCsvDto[] = await this.csvCommonService.parseCsv(
-      fileBuffer,
-    );
+  async create(records: CreateCsvDto[]): Promise<CreatedProductDto[]> {
     const products: any[] = [];
     await Promise.all(
       records.map(async (record: CreateCsvDto) => {
-        const data: CreateCsvDto = this.validateRow(record);
         const { name, description, highlight, status, categoryId, parentId } =
-          data;
+          record;
 
         const categoryConnector = await this.getCategoryConnector(categoryId);
         const parentConnector = parentId
           ? await this.getParentConnector(parentId)
           : null;
-        const images = await this.getImageConnector(data.images);
+        const images = await this.getImageConnector(record.images);
 
         const product = this.prismaService.product.create({
           data: {
@@ -70,18 +66,14 @@ export class CsvService {
     );
   }
 
-  async update(fileBuffer: String): Promise<GetProductDto[]> {
-    const records: UpdateCsvDto[] = await this.csvCommonService.parseCsv(
-      fileBuffer,
-    );
+  async update(records: UpdateCsvDto[]): Promise<GetProductDto[]> {
     const products: any[] = [];
     await Promise.all(
       records.map(async (record: UpdateCsvDto) => {
-        const toUpdate: UpdateCsvDto = this.validateUpdateRow(record);
-        await this.throwIfNotFound(toUpdate.id);
-        const data = await this.buildUpdateData(toUpdate);
+        await this.throwIfNotFound(record.id);
+        const data = await this.buildUpdateData(record);
         const product = this.prismaService.product.update({
-          where: { id: toUpdate.id },
+          where: { id: record.id },
           data,
           ...includeHightsAndImages,
         });
@@ -177,24 +169,6 @@ export class CsvService {
       };
     }
     return data;
-  }
-
-  private validateUpdateRow(record: UpdateCsvDto): UpdateCsvDto {
-    const parseResult = zCsvUpdateSchema.safeParse(record);
-
-    if (!parseResult.success) {
-      throw new BadRequestException(parseResult.error.issues[0]);
-    }
-    return parseResult.data;
-  }
-
-  private validateRow(record: CreateCsvDto): CreateCsvDto {
-    const parseResult = zCsvCreateSchema.safeParse(record);
-
-    if (!parseResult.success) {
-      throw new BadRequestException(parseResult.error.issues[0].message);
-    }
-    return parseResult.data;
   }
 
   private async getImageConnector(urlArray: string[]) {

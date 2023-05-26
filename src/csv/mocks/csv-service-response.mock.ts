@@ -1,9 +1,28 @@
-import { generateMock } from '@anatine/zod-mock';
 import { CreatedProductDto } from 'src/products/dto/created-product.dto';
 import { GetProductDto } from 'src/products/dto/get-product.dto';
-import { z } from 'zod';
-import { zCsvCreateSchema } from '../dto/create-csv.dto';
 import { UpdateCsvDto } from '../dto/update-csv.dto';
+import { CreateCsvDto } from '../dto/create-csv.dto';
+
+export const csvProdCreateRequest: CreateCsvDto[] = [
+  {
+    parentId: 1,
+    categoryId: 2,
+    name: 'Product 1',
+    description: 'Description of Product 1',
+    highlight: 'Product Highlight',
+    status: 'ACTIVE',
+    images: ['image1.jpg', 'image2.jpg'],
+  },
+  {
+    parentId: null,
+    categoryId: 3,
+    name: 'Product 2',
+    description: 'Description of Product 2',
+    highlight: 'Product Highlight',
+    status: 'ACTIVE',
+    images: ['image3.jpg'],
+  },
+];
 
 export const csvProdCreatedResponse: CreatedProductDto[] = [
   {
@@ -135,17 +154,6 @@ export const csvProdUpdateResponse: GetProductDto[] = [
     images: ['http://localhost:3333/api/images/products/2'],
   },
 ];
-
-export const invalidProdUpdateRequest = [
-  {
-    parentId: 1,
-  },
-  {
-    categoryId: 'abcd',
-  },
-];
-
-export const invalidCsv = generateMock(z.array(zCsvCreateSchema));
 
 export const ProdCreateResIntegration = [
   {
