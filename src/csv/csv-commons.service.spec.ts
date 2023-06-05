@@ -1,60 +1,77 @@
 import { HttpService } from '@nestjs/axios';
-import { ConfigService } from '@nestjs/config';
-import { TestingModule, Test } from '@nestjs/testing';
+import { BadRequestException } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { Test, TestingModule } from '@nestjs/testing';
+import { of } from 'rxjs';
+import {
+  RejecthttpResponse,
+  httpResponse,
+  response,
+} from '../csv/mocks/csv-req-res.mock';
 import { CsvCommonService } from './csv-commons.service';
+import { ImagesModule } from '../images/images.module';
+import config from '../common/config/config';
+import * as crypto from 'crypto';
 
 describe('CsvCommonService', () => {
-  let service: CsvCommonService;
+  let commonsservice: CsvCommonService;
   let httpService: HttpService;
-  let configService: ConfigService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [CsvCommonService, HttpService, ConfigService],
+      imports: [ConfigModule.forRoot({ load: [config] }), ImagesModule],
+      providers: [
+        CsvCommonService,
+        {
+          provide: HttpService,
+          useValue: {
+            get: jest.fn(),
+          },
+        },
+      ],
     }).compile();
 
-    service = module.get<CsvCommonService>(CsvCommonService);
+    commonsservice = module.get<CsvCommonService>(CsvCommonService);
     httpService = module.get<HttpService>(HttpService);
-    configService = module.get<ConfigService>(ConfigService);
   });
 
   it('should be defined', () => {
-    expect(service).toBeDefined();
+    expect(commonsservice).toBeDefined();
   });
 
   describe('downloadImage', () => {
-    it('should download and process image from URL successfully', async () => {
-      // TODO: Implement the test scenario
+    const url = 'https://i.imgur.com/2ABGp0Q.png';
+    it('should download image and return destination and file metadata', async () => {
+      jest
+        .spyOn(httpService, 'get')
+        .mockImplementationOnce(() => of(httpResponse));
+
+      jest
+        .spyOn(crypto, 'randomUUID')
+        .mockImplementation(() => 'd477d7e4-5803-4f94-9f78-4cebb05f42d6');
+
+      await expect(commonsservice.downloadImage(url)).resolves.toStrictEqual(
+        response,
+      );
     });
 
     it('should throw BadRequestException if the HTTP response status is not OK', async () => {
-      // TODO: Implement the test scenario
+      jest
+        .spyOn(httpService, 'get')
+        .mockImplementationOnce(() => of(RejecthttpResponse));
+
+      await expect(() => commonsservice.downloadImage(url)).rejects.toThrow(
+        new BadRequestException(`Error downloading image from ${url}`),
+      );
     });
 
-    it('should throw BadRequestException if error occurs during image download', async () => {
-      // TODO: Implement the test scenario
-    });
-  });
-
-  describe('getImageMetadata', () => {
-    it('should retrieve image metadata successfully', async () => {
-      // TODO: Implement the test scenario
-    });
-
-    it('should throw BadRequestException if image buffer is not an image');
-
-    it('should throw BadRequestException if error occurs during image metadata retrieval', async () => {
-      // TODO: Implement the test scenario
-    });
-  });
-
-  describe('saveImage', () => {
-    it('should save the image successfully', async () => {
-      // TODO: Implement the test scenario
-    });
-
-    it('should throw an error if error occurs during image saving', async () => {
-      // TODO: Implement the test scenario
+    it('should throw BadRequestException if the buffer received is not of image', async () => {
+      jest
+        .spyOn(httpService, 'get')
+        .mockImplementationOnce(() => of(RejecthttpResponse));
+      await expect(() => commonsservice.downloadImage(url)).rejects.toThrow(
+        new BadRequestException(`Error downloading image from ${url}`),
+      );
     });
   });
 });

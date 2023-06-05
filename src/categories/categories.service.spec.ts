@@ -1,5 +1,5 @@
 import { NotFoundException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from './../common/services/prisma.service';
 import { CategoriesService } from './categories.service';
@@ -14,6 +14,11 @@ import {
   prismaLayerUpdateResponse,
   updateResponse,
 } from './mocks/categories-req-res.mock';
+import config from '../common/config/config';
+import { MinioClientModule } from '../minio-client/minio-client.module';
+import { ImagesModule } from '../images/images.module';
+import { mockDeep } from 'jest-mock-extended';
+import { PrismaClient } from '@prisma/client';
 
 const mockFile = {
   fieldname: 'file',
@@ -28,10 +33,19 @@ describe('CategoriesService', () => {
   let service: CategoriesService;
   let prismaService: PrismaService;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [CategoriesService, PrismaService, ConfigService],
-    }).compile();
+      imports: [
+        MinioClientModule,
+        ConfigModule.forRoot({ isGlobal: true, load: [config] }),
+        ImagesModule,
+      ],
+
+      providers: [CategoriesService, PrismaService],
+    })
+      .overrideProvider(PrismaService)
+      .useValue(mockDeep<PrismaClient>())
+      .compile();
 
     service = module.get<CategoriesService>(CategoriesService);
     prismaService = module.get<PrismaService>(PrismaService);
@@ -50,7 +64,7 @@ describe('CategoriesService', () => {
 
     const result = {
       id: 1,
-      image: '/categories/1',
+      image: 'http://localhost:3333/api/images/categories/1',
     };
 
     beforeEach(async () => {
@@ -144,6 +158,9 @@ describe('CategoriesService', () => {
     });
 
     it('should throw NotFoundException and not delegate to service layer if category id not found', async () => {
+      service.throwIfNotFound = jest
+        .fn()
+        .mockRejectedValueOnce(new NotFoundException());
       const serviceCreateSpy = jest.spyOn(prismaService.category, 'delete');
       await expect(service.remove(1)).rejects.toThrow(NotFoundException);
       expect(serviceCreateSpy).toBeCalledTimes(0);
@@ -175,11 +192,18 @@ describe('CategoriesService', () => {
     });
 
     it('should throw NotFoundException and not delegate to service layer if category id not found', async () => {
+      service.throwIfNotFound = jest
+        .fn()
+        .mockRejectedValueOnce(new NotFoundException());
+
       const serviceCreateSpy = jest.spyOn(prismaService.category, 'update');
       await expect(service.update(1, request)).rejects.toThrow(
         NotFoundException,
       );
       expect(serviceCreateSpy).toBeCalledTimes(0);
     });
+  });
+  afterAll(async () => {
+    await prismaService.$disconnect();
   });
 });

@@ -1,22 +1,24 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { MulterModule } from '@nestjs/platform-express';
 import { PrismaService } from '../common/services/prisma.service';
 import { ImagesController } from './images.controller';
 import { ImagesService } from './images.service';
+import { MinioClientModule } from '../minio-client/minio-client.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   providers: [ImagesService, PrismaService],
   imports: [
-    MulterModule.registerAsync({
-      imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        dest: configService.get<string>('imageStore.destination'),
-      }),
-      inject: [ConfigService],
-    }),
+    // MulterModule.registerAsync({
+    //   imports: [ConfigModule],
+    //   useFactory: (configService: ConfigService) => ({
+    //     dest: configService.get<string>('imageStore.destination'),
+    //   }),
+    //   inject: [ConfigService],
+    // }),
+    MinioClientModule,
+    ConfigModule,
   ],
-  exports: [ImagesService, MulterModule],
+  exports: [ImagesService],
   controllers: [ImagesController],
 })
 export class ImagesModule {}

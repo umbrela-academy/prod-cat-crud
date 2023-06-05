@@ -1,5 +1,5 @@
 import { NotFoundException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { mockFiles, prodCreateRequest } from '../mocks/product-req-res.mock';
 import {
@@ -18,6 +18,10 @@ import {
 } from './../mocks/product-service-response.mock';
 import { ProductCommonsService } from './product-commons.service';
 import { ProductsService } from './products.service';
+import { Category, PrismaClient } from '@prisma/client';
+import { ImagesModule } from '../../images/images.module';
+import config from '../../common/config/config';
+import { mockDeep } from 'jest-mock-extended';
 
 describe('ProductsService', () => {
   let service: ProductsService;
@@ -26,13 +30,12 @@ describe('ProductsService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        ProductsService,
-        ProductCommonsService,
-        PrismaService,
-        ConfigService,
-      ],
-    }).compile();
+      imports: [ImagesModule, ConfigModule.forRoot({ load: [config] })],
+      providers: [ProductsService, ProductCommonsService, PrismaService],
+    })
+      .overrideProvider(PrismaService)
+      .useValue(mockDeep<PrismaClient>())
+      .compile();
 
     service = module.get<ProductsService>(ProductsService);
     prismaService = module.get<PrismaService>(PrismaService);
@@ -54,13 +57,22 @@ describe('ProductsService', () => {
     });
 
     it('should return id and highlights and image urls', async () => {
+      const serviceFindUniqueSpy = jest
+        .spyOn(prismaService.category, 'findUnique')
+        .mockResolvedValueOnce({ id: 1 } as Category);
       expect(await service.create(request, mockFiles)).toStrictEqual(result);
+      expect(serviceFindUniqueSpy).toHaveBeenCalledTimes(1);
     });
 
     it('should delegate to prisma layer once', async () => {
+      const serviceFindUniqueSpy = jest
+        .spyOn(prismaService.category, 'findUnique')
+        .mockResolvedValueOnce({ id: 1 } as Category);
+
       const serviceCreateSpy = jest.spyOn(prismaService.product, 'create');
       await service.create(request, mockFiles);
       expect(serviceCreateSpy).toBeCalledTimes(1);
+      expect(serviceFindUniqueSpy).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -145,10 +157,13 @@ describe('ProductsService', () => {
       expect(serviceCreateSpy).toBeCalledTimes(1);
     });
 
-    it('should throw NotFoundException and not delegate to service layer if category id not found', async () => {
-      const serviceCreateSpy = jest.spyOn(prismaService.category, 'delete');
+    it('should throw NotFoundException and not delegate to service layer if product id not found', async () => {
+      jest.spyOn(service, 'throwIfNotFound').mockImplementation(() => {
+        throw new NotFoundException();
+      });
+      const serviceDeleteSpy = jest.spyOn(prismaService.category, 'delete');
       await expect(service.remove(1)).rejects.toThrow(NotFoundException);
-      expect(serviceCreateSpy).toBeCalledTimes(0);
+      expect(serviceDeleteSpy).toBeCalledTimes(0);
     });
   });
 

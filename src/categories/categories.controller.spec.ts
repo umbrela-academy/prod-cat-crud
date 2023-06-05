@@ -5,9 +5,12 @@ import { CategoriesController } from './categories.controller';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 
-import { ConfigService } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PrismaService } from '../common/services/prisma.service';
 import { BadRequestException } from '@nestjs/common';
+import { ImagesService } from '../images/images.service';
+import { MinioClientModule } from '../minio-client/minio-client.module';
+import config from '../common/config/config';
 
 /**
  * Unit Tests for the Categories Controller layer.
@@ -30,8 +33,17 @@ describe('CategoriesController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [
+        MinioClientModule,
+        ConfigModule.forRoot({ isGlobal: true, load: [config] }),
+      ],
       controllers: [CategoriesController],
-      providers: [CategoriesService, PrismaService, ConfigService],
+      providers: [
+        CategoriesService,
+        PrismaService,
+        ConfigService,
+        ImagesService,
+      ],
     }).compile();
 
     controller = module.get<CategoriesController>(CategoriesController);

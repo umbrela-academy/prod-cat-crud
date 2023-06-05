@@ -1,16 +1,17 @@
 import {
-  addedImages,
   mockFiles,
-  updatedHighlightsResponse,
   updateHighlightsRequest,
 } from './../mocks/product-req-res.mock';
-import { highlight } from './../../common/types/z.schema';
 import { NotFoundException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '../../common/services/prisma.service';
 import { ProductCommonsService } from './product-commons.service';
 import { ProductRelationsService } from './product-relations.service';
+import { ImagesModule } from '../../images/images.module';
+import config from '../../common/config/config';
+import { PrismaClient } from '@prisma/client';
+import { mockDeep } from 'jest-mock-extended';
 
 describe('ProductRelationsService', () => {
   let service: ProductRelationsService;
@@ -18,13 +19,19 @@ describe('ProductRelationsService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [
+        ImagesModule,
+        ConfigModule.forRoot({ isGlobal: true, load: [config] }),
+      ],
       providers: [
         ProductRelationsService,
         ProductCommonsService,
         PrismaService,
-        ConfigService,
       ],
-    }).compile();
+    })
+      .overrideProvider(PrismaService)
+      .useValue(mockDeep<PrismaClient>())
+      .compile();
 
     service = module.get<ProductRelationsService>(ProductRelationsService);
     prismaService = module.get<PrismaService>(PrismaService);
@@ -53,7 +60,7 @@ describe('ProductRelationsService', () => {
     });
     it('should throw NotFoundException when product is not found', async () => {
       const request = updateHighlightsRequest;
-      await expect(service.updateHighlights(1, request)).rejects.toThrow(
+      expect(service.updateHighlights(1, request)).rejects.toThrow(
         NotFoundException,
       );
     });
@@ -175,15 +182,14 @@ describe('ProductRelationsService', () => {
   });
 
   describe('removeImage', () => {
-    beforeEach(() => {
-      prismaService.product.update = jest.fn().mockReturnValueOnce({ id: 1 });
-    });
-
     it('should return deleted image url when both product and image in the product are found', () => {
       prismaService.product.findUnique = jest
         .fn()
         .mockReturnValueOnce({ id: 1, images: [{ id: 1 }] });
-      expect(service.removeImage(1, 1)).resolves.toStrictEqual('/products/1');
+      prismaService.product.update = jest.fn().mockReturnValueOnce({ id: 1 });
+      expect(service.removeImage(1, 1)).resolves.toStrictEqual(
+        'http://localhost:3333/api/images/products/1',
+      );
     });
 
     it('should throw NotFoundException when image is not found', async () => {
@@ -238,26 +244,24 @@ describe('ProductRelationsService', () => {
     const serviceUpdateResponse = [
       {
         id: 1,
-        url: '/products/1',
+        url: 'http://localhost:3333/api/images/products/1',
       },
       {
         id: 2,
-        url: '/products/2',
+        url: 'http://localhost:3333/api/images/products/2',
       },
     ];
-    beforeEach(async () => {
-      prismaService.product.update = jest
-        .fn()
-        .mockReturnValueOnce(prismaUpdateResponse);
-    });
     it('should add images and return image urls with their ids', async () => {
       service.throw404IfNonExistent = jest.fn().mockReturnValueOnce(null);
-      expect(await service.addImages(1, mockFiles)).toStrictEqual(
-        serviceUpdateResponse,
-      );
-    });
+      prismaService.product.update = jest
+        .fn()
+        .mockReturnValue(prismaUpdateResponse);
 
+      const result = await service.addImages(1, mockFiles);
+      expect(result).toEqual(serviceUpdateResponse);
+    });
     it('should throw NotFoundException when product is not found', async () => {
+      jest.spyOn(prismaService.product, 'findUnique').mockResolvedValue(null);
       await expect(service.addImages(1, mockFiles)).rejects.toThrow(
         NotFoundException,
       );
@@ -293,14 +297,17 @@ describe('ProductRelationsService', () => {
     it('should add highlights and return highlights with their ids', async () => {
       service.throw404IfNonExistent = jest.fn().mockReturnValueOnce(null);
 
-      // expect(await service.addImages(1, mockFiles)).
       expect(await service.addHighlights(1, newHighlights)).toStrictEqual(
         prismaUpdateResponse,
       );
     });
 
     it('should throw NotFoundException when product is not found', async () => {
-      await expect(service.addHighlights(1, newHighlights)).rejects.toThrow(
+      service.throw404IfNonExistent = jest.fn().mockImplementationOnce(() => {
+        throw new NotFoundException();
+      });
+
+      expect(service.addHighlights(1, newHighlights)).rejects.toThrow(
         NotFoundException,
       );
     });

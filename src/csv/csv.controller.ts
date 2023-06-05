@@ -1,20 +1,12 @@
 import {
   Controller,
-  Get,
   Post,
-  Body,
   Patch,
-  Param,
-  Delete,
   UseInterceptors,
   UploadedFile,
   ParseFilePipe,
-  UploadedFiles,
-  UsePipes,
 } from '@nestjs/common';
 import { CsvService } from './csv.service';
-import { CreateCsvDto } from './dto/create-csv.dto';
-import { UpdateCsvDto } from './dto/update-csv.dto';
 import {
   ApiConsumes,
   ApiCreatedResponse,
@@ -22,14 +14,15 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ZCsvValidatorPipe } from 'src/common/services/z-csv.validator';
-import { ZodValidationPipe } from '@anatine/zod-nestjs';
-import { CreatedProductDto } from 'src/products/dto/created-product.dto';
-import { GetProductDto } from 'src/products/dto/get-product.dto';
+import { ZCsvValidatorPipe } from '../common/services/z-csv.validator';
+import { CreatedProductDto } from '../products/dto/created-product.dto';
+import { GetProductDto } from '../products/dto/get-product.dto';
+import { ExcelTransformationPipe } from 'src/common/services/excel-csv.pipe';
+import { CreateCsvDto } from './dto/create-csv.dto';
+import { UpdateCsvDto } from './dto/update-csv.dto';
 
 @ApiTags('csv')
 @Controller('csv')
-@UsePipes(ZodValidationPipe)
 export class CsvController {
   constructor(private readonly csvService: CsvService) {}
 
@@ -40,16 +33,17 @@ export class CsvController {
   })
   @ApiConsumes('multipart/form-data')
   @Post()
-  @UseInterceptors(FileInterceptor('csv'))
+  @UseInterceptors(FileInterceptor('file', {}))
   async create(
     @UploadedFile(
       new ParseFilePipe({
         validators: [new ZCsvValidatorPipe()],
       }),
+      new ExcelTransformationPipe(),
     )
-    csv: Express.Multer.File,
+    csv: CreateCsvDto[],
   ): Promise<CreatedProductDto[]> {
-    return this.csvService.create(csv.buffer.toString('base64'));
+    return this.csvService.create(csv);
   }
 
   @ApiOkResponse({
@@ -58,15 +52,16 @@ export class CsvController {
     isArray: true,
   })
   @Patch()
-  @UseInterceptors(FileInterceptor('csv'))
+  @UseInterceptors(FileInterceptor('file'))
   async update(
     @UploadedFile(
       new ParseFilePipe({
         validators: [new ZCsvValidatorPipe()],
       }),
+      new ExcelTransformationPipe(false),
     )
-    csv: Express.Multer.File,
+    csv: UpdateCsvDto[],
   ) {
-    return this.csvService.update(csv.buffer.toString('base64'));
+    return this.csvService.update(csv);
   }
 }

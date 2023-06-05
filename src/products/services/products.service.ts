@@ -7,11 +7,13 @@ import { GetProductDto } from '../dto/get-product.dto';
 import { UpdateProductDto } from '../dto/update-product.dto';
 import { includeHightsAndImages } from '../product.utils';
 import { ProductCommonsService } from './product-commons.service';
+import { ConfigService } from '@nestjs/config';
 @Injectable()
 export class ProductsService {
   constructor(
     private prismaService: PrismaService,
     private productCommonsService: ProductCommonsService,
+    private configService: ConfigService,
   ) {}
 
   async create(
@@ -25,7 +27,9 @@ export class ProductsService {
       createProductDto.parentId,
     );
 
-    const images = this.productCommonsService.getImagesPayload(imageFileDtos);
+    const images = await this.productCommonsService.getImagesPayload(
+      imageFileDtos,
+    );
 
     const res = await this.prismaService.product.create({
       data: {

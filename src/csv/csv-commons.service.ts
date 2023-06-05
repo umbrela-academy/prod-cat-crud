@@ -1,12 +1,13 @@
 import { HttpService } from '@nestjs/axios';
 import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { createWriteStream } from 'fs';
-import { join } from 'path';
 import { lastValueFrom } from 'rxjs';
 import * as sharp from 'sharp';
-import { DownloadedFileModel } from 'src/common/types/downloaded-file.model';
-import { toGetProductDto, toImageUrl } from 'src/products/product.utils';
+import { toImageUrl } from '../categories/category.utils';
+import { DownloadedFileModel } from '../common/types/downloaded-file.model';
+import { toGetProductDto } from '../products/product.utils';
+import * as crypto from 'crypto';
+import { ImagesService } from '../images/images.service';
 
 @Injectable()
 export class CsvCommonService {
@@ -20,7 +21,8 @@ export class CsvCommonService {
   toUrl = toImageUrl(this.IMG_STORE_URL);
   constructor(
     private readonly httpService: HttpService,
-    private configService: ConfigService,
+    private readonly configService: ConfigService,
+    private readonly imageService: ImagesService,
   ) {}
 
   async downloadImage(url: string): Promise<DownloadedFileModel> {
@@ -31,11 +33,12 @@ export class CsvCommonService {
       if (res.status !== HttpStatus.OK) {
         throw new BadRequestException(`Error downloading image from ${url}`);
       }
-      const buffer = Buffer.from(res.data);
-      const metadata = await this.getImageMetadata(buffer);
-      const filename = (await this.saveImage(buffer)).filename;
+      const buffer: Buffer = Buffer.from(res.data);
+      const metadata: sharp.Metadata = await this.getImageMetadata(buffer);
+      const filename = crypto.randomUUID() + '.' + metadata.format;
+      await this.imageService.upload(buffer, filename);
       const originalname: string = res.headers['Content-Disposition']
-        ? res.headers['Content-Disposition']
+        ? res.headers['Content-Disposition'].split(';')[1].trim().split('=')[1]
         : filename;
 
       return {
@@ -46,42 +49,19 @@ export class CsvCommonService {
         url,
       };
     } catch (error) {
-      throw new BadRequestException(`Error downloading image from ${url}`);
+      throw new BadRequestException(error.message);
     }
   }
 
-  async getImageMetadata(imageBuffer: Buffer) {
+  private async getImageMetadata(imageBuffer: Buffer) {
     try {
-      const metadata = await sharp(imageBuffer).metadata();
+      const metadata: sharp.Metadata = await sharp(imageBuffer).metadata();
+
       return metadata;
     } catch (error) {
       throw new BadRequestException(
         'Error processing image metadata. Response Data may not be an image',
       );
-    }
-  }
-  async saveImage(imageBuffer: Buffer) {
-    try {
-      const filename = `${Date.now()}`;
-      const path = join(this.defaultDestination, filename);
-      const writeStream = createWriteStream(path);
-
-      await new Promise<void>((resolve, reject) => {
-        writeStream.write(imageBuffer, (error) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve();
-          }
-        });
-        writeStream.end();
-      });
-
-      return {
-        filename,
-      };
-    } catch (error) {
-      throw new Error('Error saving the image');
     }
   }
 }

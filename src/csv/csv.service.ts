@@ -1,18 +1,12 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
-import * as papa from 'papaparse';
-import { Readable } from 'stream';
-import { PrismaService } from 'src/common/services/prisma.service';
-import { includeHightsAndImages } from 'src/products/product.utils';
-import { CreateCsvDto, zCsvCreateSchema } from './dto/create-csv.dto';
-import { UpdateCsvDto, zCsvUpdateSchema } from './dto/update-csv.dto';
-import { GetProductDto } from 'src/products/dto/get-product.dto';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../common/services/prisma.service';
+import { DownloadedFileModel } from '../common/types/downloaded-file.model';
+import { CreatedProductDto } from '../products/dto/created-product.dto';
+import { GetProductDto } from '../products/dto/get-product.dto';
+import { includeHightsAndImages } from '../products/product.utils';
 import { CsvCommonService } from './csv-commons.service';
-import { DownloadedFileModel } from 'src/common/types/downloaded-file.model';
-import { CreatedProductDto } from 'src/products/dto/created-product.dto';
+import { CreateCsvDto } from './dto/create-csv.dto';
+import { UpdateCsvDto } from './dto/update-csv.dto';
 
 @Injectable()
 export class CsvService {
@@ -21,21 +15,19 @@ export class CsvService {
     private csvCommonService: CsvCommonService,
   ) {}
 
-  async create(fileBuffer: String): Promise<CreatedProductDto[]> {
-    const records: CreateCsvDto[] = await this.parseCsv(fileBuffer);
+  async create(records: CreateCsvDto[]): Promise<CreatedProductDto[]> {
     const products: any[] = [];
-
     await Promise.all(
       records.map(async (record: CreateCsvDto) => {
-        const data: CreateCsvDto = this.validateRow(record);
         const { name, description, highlight, status, categoryId, parentId } =
-          data;
+          record;
 
         const categoryConnector = await this.getCategoryConnector(categoryId);
         const parentConnector = parentId
           ? await this.getParentConnector(parentId)
           : null;
-        const images = await this.getImageConnector(data.images);
+
+        const images = await this.getImageConnector(record.images);
 
         const product = this.prismaService.product.create({
           data: {
@@ -43,10 +35,7 @@ export class CsvService {
             description,
             ...categoryConnector,
             ...parentConnector,
-            images: {
-              connect: images.connect,
-              create: images.create,
-            },
+            images,
             highlights: { create: { description: highlight } },
             status,
           },
@@ -69,21 +58,20 @@ export class CsvService {
         products.push(product);
       }),
     );
+
     return (await this.prismaService.$transaction(products)).map(
       this.csvCommonService.toDto,
     );
   }
 
-  async update(fileBuffer: String): Promise<GetProductDto[]> {
-    const records: UpdateCsvDto[] = await this.parseCsv(fileBuffer);
+  async update(records: UpdateCsvDto[]): Promise<GetProductDto[]> {
     const products: any[] = [];
     await Promise.all(
       records.map(async (record: UpdateCsvDto) => {
-        const toUpdate: UpdateCsvDto = this.validateUpdateRow(record);
-        await this.throwIfNotFound(toUpdate.id);
-        const data = await this.buildUpdateData(toUpdate);
+        await this.throwIfNotFound(record.id);
+        const data = await this.buildUpdateData(record);
         const product = this.prismaService.product.update({
-          where: { id: toUpdate.id },
+          where: { id: record.id },
           data,
           ...includeHightsAndImages,
         });
@@ -156,6 +144,7 @@ export class CsvService {
     if (record.name) {
       data.name = record.name;
     }
+
     if (record.description) {
       data.description = record.description;
     }
@@ -168,6 +157,9 @@ export class CsvService {
       data.parent = (await this.getParentConnector(record.parentId)).parent;
     }
 
+    if (record.status) {
+      data.status = record.status;
+    }
     if (record.images) {
       data.images = {
         deleteMany: {},
@@ -177,67 +169,43 @@ export class CsvService {
     return data;
   }
 
-  private validateUpdateRow(record: UpdateCsvDto): UpdateCsvDto {
-    const parseResult = zCsvUpdateSchema.safeParse(record);
-
-    if (!parseResult.success) {
-      throw new BadRequestException(parseResult.error.issues[0].message);
-    }
-    return parseResult.data;
-  }
-
-  private validateRow(record: CreateCsvDto): CreateCsvDto {
-    const parseResult = zCsvCreateSchema.safeParse(record);
-
-    if (!parseResult.success) {
-      throw new BadRequestException(parseResult.error.issues[0].message);
-    }
-    return parseResult.data;
-  }
-
-  private async parseCsv(fileBuffer: String) {
-    const buffer = Buffer.from(fileBuffer, 'base64');
-    const dataStream = Readable.from(buffer);
-
-    const records = await new Promise<any>((resolve, reject) => {
-      papa.parse(dataStream, {
-        header: true,
-        skipEmptyLines: true,
-        dynamicTyping: true,
-        complete: (results) => resolve(results.data),
-        error: (error) => reject(error),
-      });
-    });
-    return records;
-  }
-
   private async getImageConnector(urlArray: string[]) {
     const uniqueUrls = [...new Set(urlArray)];
-    const connect: any[] = [];
-    const create: any[] = [];
+    const create: DownloadedFileModel[] = [];
     await Promise.all(
       uniqueUrls.map(async (url: string) => {
         const image = await this.findImage(url);
+
         image
-          ? connect.push({ id: image.id })
+          ? create.push(image)
           : create.push(await this.csvCommonService.downloadImage(url));
       }),
     );
-    return {
-      connect,
-      create: create.map((imageFile: DownloadedFileModel) => ({
-        destination: imageFile.destination,
-        originalname: imageFile.originalname,
-        filename: imageFile.filename,
-        mimetype: imageFile.mimetype,
-        url: imageFile.url,
-      })),
-    };
+    const data = create.map((imageFile: DownloadedFileModel) => ({
+      destination: imageFile.destination,
+      originalname: imageFile.originalname,
+      filename: imageFile.filename,
+      mimetype: imageFile.mimetype,
+      url: imageFile.url,
+    }));
+
+    return { createMany: { data } };
   }
-  async findImage(url: string) {
-    return this.prismaService.productImage.findFirst({
+  private async findImage(url: string) {
+    const image = await this.prismaService.productImage.findFirst({
       where: { url },
-      select: { id: true },
+      select: {
+        destination: true,
+        originalname: true,
+        filename: true,
+        mimetype: true,
+        url: true,
+      },
     });
+    return image
+      ? {
+          ...image,
+        }
+      : null;
   }
 }

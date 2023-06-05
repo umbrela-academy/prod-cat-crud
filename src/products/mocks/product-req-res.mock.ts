@@ -2,13 +2,16 @@ import { GetProductDto } from './../dto/get-product.dto';
 import { CreateProductDto } from '../dto/create-product.dto';
 import { CreatedProductDto } from './../dto/created-product.dto';
 import { UpdateProductDto } from '../dto/update-product.dto';
+import { join } from 'path';
+import * as fs from 'fs';
 
+export const filepath = join('test', '34563.png');
 export const mockFile = {
   fieldname: 'file',
   originalname: '34563.png',
   encoding: '7bit',
   mimetype: 'image/png',
-  buffer: Buffer.from(__dirname + '../../../test/34563.png'),
+  buffer: fs.readFileSync(filepath),
   size: 3638506,
 } as Express.Multer.File;
 
