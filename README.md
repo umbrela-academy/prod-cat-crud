@@ -86,7 +86,7 @@ $ npm run test:cov
 
 ## Looking forward to hearing from you!
 
-- Authors - [Risav Karna](https://github.com/risavkarna), [Suman Khadka](https://github.com/sumankhadka)
+- Authors - [Risav Karna](https://github.com/risavkarna), [Suman Khadka](https://github.com/sumann7916)
 - Website - [risav.dev](https://risav.dev/)
 - Email - [prodcatapi@risav.dev](mailto:prodcatapi@risav.dev)
 - Twitter (& most social media) - [@risavkarna](https://twitter.com/risavkarna)
