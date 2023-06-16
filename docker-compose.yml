@@ -12,12 +12,12 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
-      
+
     env_file:
       - .env
     volumes:
       - prod-cat-api:/app/${IMG_DIRECTORY}
-  
+
   mysql:
     image: mysql:8.0.31
     container_name: prod-cat-db
@@ -34,18 +34,18 @@ services:
       timeout: 60s
       retries: 5
 
-  keycloak-pc-api:
-    build:
-      context: ./keycloak/
-      dockerfile: Dockerfile
-    env_file:
-      - .env
-    container_name: keycloak-pc-api
-    ports:
-      - 8443:8443
-    depends_on:
-      mysql:
-        condition: service_healthy
+  # keycloak-pc-api:
+  #   build:
+  #     context: ./keycloak/
+  #     dockerfile: Dockerfile
+  #   env_file:
+  #     - .env
+  #   container_name: keycloak-pc-api
+  #   ports:
+  #     - 8443:8443
+  #   depends_on:
+  #     mysql:
+  #       condition: service_healthy
 
 volumes:
   mysql:
