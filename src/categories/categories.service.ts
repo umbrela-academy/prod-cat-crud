@@ -9,6 +9,7 @@ import { GetCategoryDto } from './dto/get-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { ImagesService } from '../images/images.service';
 import * as crypto from 'crypto';
+import { ProductSearchDto } from 'src/common/utils/product-common.utils';
 
 @Injectable()
 export class CategoriesService {
@@ -204,5 +205,19 @@ export class CategoriesService {
     const ext: string = mimetype.split('/')[1];
     const filename: string = crypto.randomUUID() + '.' + ext;
     return await this.imageService.upload(buffer, filename);
+  }
+
+  async search(query: string) {
+    return (
+      await this.prismaService.category.findMany({
+        where: {
+          name: { search: query },
+        },
+        select: {
+          name: true,
+          categoryImage: true,
+        },
+      })
+    ).map(this.toDto);
   }
 }

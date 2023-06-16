@@ -5,6 +5,7 @@ import { PrismaService } from '../../common/services/prisma.service';
 import { toGetProductDto, toImageUrl } from '../product.utils';
 import { ImagesService } from '../../images/images.service';
 import * as crypto from 'crypto';
+import { toProdNameAndImages } from 'src/common/utils/product-common.utils';
 
 @Injectable()
 export class ProductCommonsService {
@@ -17,7 +18,7 @@ export class ProductCommonsService {
 
   toDto = toGetProductDto(this.IMG_STORE_URL);
   toUrl = toImageUrl(this.IMG_STORE_URL);
-
+  toSearchDto = toProdNameAndImages(this.IMG_STORE_URL);
   constructor(
     private prismaService: PrismaService,
     private configService: ConfigService,

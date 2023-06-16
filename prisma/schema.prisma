@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["fullTextSearch","fullTextIndex"]
 }
 
 generator docs {
@@ -34,6 +35,7 @@ model Category {
   Product Product[]
 
   @@index([parentId], map: "Category_parentId_fkey")
+  @@fulltext([name])
 }
 
 model CategoryImage {
@@ -44,6 +46,8 @@ model CategoryImage {
   mimetype     String @db.VarChar(20)
 
   category Category?
+
+  
 }
 
 model Product {
@@ -68,6 +72,9 @@ model Product {
 
   @@index([categoryId], map: "Product_categoryId_fkey")
   @@index([parentId], map: "Product_parentId_fkey")
+
+  @@fulltext([description, name])
+
 }
 
 model ProductImage {

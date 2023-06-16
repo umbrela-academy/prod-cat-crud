@@ -8,6 +8,7 @@ import { ImagesModule } from './images/images.module';
 import { ProductsModule } from './products/products.module';
 import { CsvModule } from './csv/csv.module';
 import { MinioClientModule } from './minio-client/minio-client.module';
+import { SearchModule } from './search/search.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { MinioClientModule } from './minio-client/minio-client.module';
     ImagesModule,
     CsvModule,
     MinioClientModule,
+    SearchModule,
   ],
 })
 export class AppModule {}
