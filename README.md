@@ -1,6 +1,14 @@
 # Products & Categories
 
-## Description
+This repository contains a NestJS-Typescript-Zod API server with endpoints for products, categories and images for an imaginary e-commerce service. Please add e2e tests and DB integration tests with the already provided test setup in this repo. You are also welcome to add your own testing tools but all of the tests must be runnable by a single step in the npm run script in package.json.
+
+You are expected to only focus on these search related endpoints:
+
+- /search
+- /products/search
+- /categories/search
+
+## API Server Description
 
 A basic CRUD server with nest, prisma, mysql, zod, docker, multer and jest.
 
