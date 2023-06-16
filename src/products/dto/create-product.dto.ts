@@ -1,7 +1,7 @@
 import { createZodDto } from '@anatine/zod-nestjs';
 import { extendApi } from '@anatine/zod-openapi';
 import { z } from 'zod';
-import { zImage, zImages } from '../../common/types/z-image.schema';
+import { zImage } from '../../common/types/z-image.schema';
 import {
   category,
   product,

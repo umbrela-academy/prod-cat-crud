@@ -10,6 +10,7 @@ import {
   Patch,
   Post,
   Put,
+  Query,
   UploadedFiles,
   UseInterceptors,
   UsePipes,
@@ -38,10 +39,11 @@ import { UpdatedProductHighlightsDto } from './dto/updated-product-highlights.dt
 import { UpdatedProductImagesDto } from './dto/updated-product-images.dto';
 import { ProductRelationsService } from './services/product-relations.service';
 import { ProductsService } from './services/products.service';
+import { GetSearchProductDto } from './dto/get-search-product.dto';
 
 @ApiTags('product')
-@Controller('products')
 @UsePipes(ZodValidationPipe)
+@Controller('products')
 export class ProductsController {
   constructor(
     private readonly productsService: ProductsService,
@@ -65,6 +67,16 @@ export class ProductsController {
     images: Express.Multer.File[],
   ): Promise<CreatedProductDto> {
     return this.productsService.create(createProductDto, images);
+  }
+
+  @ApiOkResponse({
+    type: GetSearchProductDto,
+    description: 'The following products matched with the query',
+    isArray: true,
+  })
+  @Get('search')
+  async search(@Query('search') query: string) {
+    return this.productsService.search(query);
   }
 
   @ApiOkResponse({

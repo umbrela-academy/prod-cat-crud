@@ -63,9 +63,12 @@ $ npm run start:prod
 `dev-db.compose.yml` provides lax settings so that you can use root access for prisma shadow mysql db to keep track of schema drift.
 
 ```bash
+$ cd docker/dev
 $ docker compose -f dev-db.compose.yml up -d
+$ docker compose -f dev-minio.compose.yml up -d
 $ npm i
 $ npm exec prisma db push
+$ npx prisma db seed
 ```
 
 ## Test

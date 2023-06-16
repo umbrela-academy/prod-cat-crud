@@ -17,7 +17,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ZCsvValidatorPipe } from '../common/services/z-csv.validator';
 import { CreatedProductDto } from '../products/dto/created-product.dto';
 import { GetProductDto } from '../products/dto/get-product.dto';
-import { ExcelTransformationPipe } from 'src/common/services/excel-csv.pipe';
+import { ExcelTransformationPipe } from '../common/services/excel-csv.pipe';
 import { CreateCsvDto } from './dto/create-csv.dto';
 import { UpdateCsvDto } from './dto/update-csv.dto';
 

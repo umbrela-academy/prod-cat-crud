@@ -9,6 +9,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
   UploadedFile,
   UseInterceptors,
   UsePipes,
@@ -32,6 +33,7 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 import { CreatedCategoryDto } from './dto/created-category.dto';
 import { GetCategoryDto } from './dto/get-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
+import { GetSearchCategoryDto } from './dto/search-category.dto';
 
 @ApiTags('category')
 @ApiProduces('application/json')
@@ -57,6 +59,15 @@ export class CategoriesController {
     image: Express.Multer.File,
   ): Promise<CreatedCategoryDto> {
     return this.categoriesService.create(createCategoryDto, image);
+  }
+
+  @ApiOkResponse({
+    type: GetSearchCategoryDto,
+    description: 'The following categories were found',
+  })
+  @Get('search')
+  async search(@Query('search') query: string) {
+    return this.categoriesService.search(query);
   }
 
   @ApiOkResponse({

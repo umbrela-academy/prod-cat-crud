@@ -7,13 +7,13 @@ import { GetProductDto } from '../dto/get-product.dto';
 import { UpdateProductDto } from '../dto/update-product.dto';
 import { includeHightsAndImages } from '../product.utils';
 import { ProductCommonsService } from './product-commons.service';
-import { ConfigService } from '@nestjs/config';
+import { ProductSearchDto } from 'src/common/utils/product-common.utils';
+
 @Injectable()
 export class ProductsService {
   constructor(
     private prismaService: PrismaService,
     private productCommonsService: ProductCommonsService,
-    private configService: ConfigService,
   ) {}
 
   async create(
@@ -209,5 +209,23 @@ export class ProductsService {
     if (!productExists) {
       throw new NotFoundException(`Product with id: ${id} was not found`);
     }
+  }
+
+  async search(query: string): Promise<ProductSearchDto[]> {
+    return (
+      await this.prismaService.product.findMany({
+        where: { name: { search: query }, description: { search: query } },
+        select: {
+          name: true,
+          description: true,
+          highlights: true,
+          images: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      })
+    ).map(this.productCommonsService.toSearchDto);
   }
 }
