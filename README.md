@@ -60,6 +60,7 @@ $ docker compose -f dev-db.compose.yml up -d
 $ docker compose -f dev-minio.compose.yml up -d
 $ npm i
 $ npm exec prisma db push
+$ npx prisma db seed
 ```
 
 ## Test
