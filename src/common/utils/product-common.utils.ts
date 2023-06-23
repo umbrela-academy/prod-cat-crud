@@ -5,7 +5,6 @@ import {
   Product,
   ProductImage,
 } from '@prisma/client';
-import { z } from 'zod';
 
 export type ProductNameAndDesc = Pick<Product, 'name' | 'description'>;
 
