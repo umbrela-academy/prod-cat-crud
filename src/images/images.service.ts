@@ -77,7 +77,11 @@ export class ImagesService {
       throw new NotFoundException('Image not found');
     }
   }
-  async upload(buffer: Buffer, filename: string): Promise<string> {
-    return await this.minioService.upload(buffer, filename);
+  async upload(
+    buffer: Buffer,
+    filename: string,
+    mimetype?: string,
+  ): Promise<string> {
+    return await this.minioService.upload(buffer, filename, mimetype);
   }
 }

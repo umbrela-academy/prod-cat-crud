@@ -36,7 +36,7 @@ export class CsvCommonService {
       const buffer: Buffer = Buffer.from(res.data);
       const metadata: sharp.Metadata = await this.getImageMetadata(buffer);
       const filename = crypto.randomUUID() + '.' + metadata.format;
-      await this.imageService.upload(buffer, filename);
+      await this.imageService.upload(buffer, filename, metadata.format);
       const originalname: string = res.headers['Content-Disposition']
         ? res.headers['Content-Disposition'].split(';')[1].trim().split('=')[1]
         : filename;

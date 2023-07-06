@@ -27,10 +27,13 @@ export class MinioClientService {
   ) {
     this.logger = new Logger('MinioStorageService');
   }
-  async upload(buffer: Buffer, filename: string) {
+  async upload(buffer: Buffer, filename: string, mimetype?: string) {
     const baseBucket: string = this.baseBucket;
+    const metaData = {
+      'Content-Type': mimetype ?? 'binary/octet-stream',
+    };
     try {
-      await this.client.putObject(baseBucket, filename, buffer);
+      await this.client.putObject(baseBucket, filename, buffer, metaData);
       return filename;
     } catch (err) {
       this.logger.error(`Error uploading file: ${err.message}`);

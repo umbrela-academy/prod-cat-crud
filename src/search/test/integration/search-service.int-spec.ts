@@ -11,5 +11,10 @@ describe('SearchService (Integration', () => {
     const module = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
+
+    prismaService = module.get<PrismaService>(PrismaService);
+    service = module.get<SearchService>(SearchService);
+
+    describe('search', () => {});
   });
 });

@@ -61,6 +61,6 @@ export class ProductCommonsService {
   async saveImage(buffer: Buffer, mimetype: string): Promise<string> {
     const ext: string = mimetype.split('/')[1];
     const filename: string = crypto.randomUUID() + '.' + ext;
-    return await this.imageService.upload(buffer, filename);
+    return await this.imageService.upload(buffer, filename, mimetype);
   }
 }
