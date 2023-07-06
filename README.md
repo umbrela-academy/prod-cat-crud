@@ -8,6 +8,25 @@ You are expected to only focus on these search related endpoints:
 - /products/search
 - /categories/search
 
+## CSV Module
+The CSV module has create and update endpoints. The endpoints are designed to handle the uploading of csv file and store their content in the database of the product. 
+#### Workflow
+The endpoint receives file data as buffer. The buffer is then passed to the z-csv validator pipe. This pipe validates the file's properties, such as mimetype, size, extension and name, to ensure it matches the requirements for a CSV or Excel File.
+Once the file passes the validation, is then sent  to ExcelTransformationPipe. This pipe utilizes the xlsx library, which is capable of parsing both Excel and CSV files. The ExcelTransformationPipe first converts the file buffer into an array of objects, representing the rows and columns of the CSV file.
+After the conversion, the array of objects goes through validation using zod validators. 
+After the valdations the array of objects is sent to the service.
+
+In the csv service, we perform additional checks and operations of the data:
+- We verify the parent and categories id exist in our database.
+- As the images are provided as URLs in the csv file, we retrieve the image from the url and save them in our Minio Server.
+- To fetch the images, we use the httpservice provided by NestJS, which utilizes Axios under the hood. However, we encountered an issue where we had to fetch the same image data multiple times if the same image URL was used for different products. To avoid this redundancy, we query our product image table's URL field to check if the image file already exists in our Minio server. If a match is found, we create a new product image entry in our database but utilize the same file in our Minio server.
+- While fetching the image data, we also ensure that the file buffer represents an image. To perform this verification, we use the sharp library, which confirms that the buffer is indeed an image.
+- To ensure atomicity during product creation, we use a transaction. Ideally, we would utilize the createMany method provided by Prisma, which allows bulk creation of products and returns the created products. However, we couldn't use this method as it only returns the count of the created products, not the actual products themselves.
+
+To optimize the endpoint's performance, one potential improvement would be to allow uncommitted reads within the transaction. This would enable us to check if the same URL exists in the CSV file itself, avoiding multiple fetches of the same image data. Currently, we are only checking the database for duplicates, but not the CSV file itself.
+
+
+
 ## API Server Description
 
 A basic CRUD server with nest, prisma, mysql, zod, docker, multer and jest.
